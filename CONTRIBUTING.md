@@ -1,16 +1,25 @@
-## Contributing
+# Contributing
 
-### Local setup
-- Python 3.12+
-- Install dev deps (includes runtime + test + security tooling): `pip install -r requirements-dev.txt`
+Thank you for your interest in contributing!
 
-### Checks
-- Lint: `ruff check .`
-- Tests: `pytest -q`
-- Security: `bandit -q -r . -c bandit.yaml`
-- Dependency audit: `pip-audit -r requirements.txt`
+## How to Contribute
 
-### Pull requests
-- Keep changes focused and well-tested
-- Update docs (`README.md`) for any new env vars or MCP tools
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -m "feat: add my feature"`
+4. Push to the branch: `git push origin feature/my-feature`
+5. Open a Pull Request
 
+## Code Standards
+
+- Follow existing code style
+- Add tests for new functionality
+- Update documentation as needed
+
+## Issues
+
+Found a bug or have a feature request? [Open an issue](../../issues/new).
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the MIT License.
