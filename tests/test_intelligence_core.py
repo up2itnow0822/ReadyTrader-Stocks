@@ -34,34 +34,33 @@ def test_analyze_social_sentiment_no_keys():
     # Ensure env vars are unset
     with patch.dict("os.environ", {}, clear=True):
         res = analyze_social_sentiment("AAPL")
-        # Correctly matching the actual output from core.py
-        assert "No providers configured" in res
+        assert "No sentiment APIs configured" in res
+        # A missing source must not be reported as a measured neutral market.
+        assert "no data source" in res or "treats sentiment as neutral" in res
 
 def test_sentiment_cache():
     cache = SentimentCache()
-    cache.set("AAPL", 0.8, ["Everything is awesome"])
-    
+    cache.set("AAPL", 12)
+
     cached = cache.get("AAPL")
-    assert cached["score"] == 0.8
-    assert "Everything is awesome" in cached["explainability_string"]
-    
-    # Test expiry
-    # We patch time.time to control "now"
-    # When cache.set was called, it used real time.
-    # So we need to ensure our patched time is >> real time.
+    # The cache records how much text was fetched, never a score - nothing here measures one.
+    assert cached["texts"] == 12
+    assert cached["configured"] is True
+    assert "score" not in cached
+    # Any spelling of the ticker reaches the same entry.
+    assert cache.get("$aapl")["texts"] == 12
+
+    # Expiry runs on the monotonic clock, so a wall-clock step cannot pin or expire an entry.
     import time
-    future_time = time.time() + 4000
-    
-    with patch("time.time", return_value=future_time):
+
+    real = time.monotonic
+    with patch("time.monotonic", side_effect=lambda: real() + cache.ttl + 1):
         assert cache.get("AAPL") is None
 
 def test_get_cached_sentiment_score():
-    with patch("intelligence.core._sentiment_cache") as mock_cache:
-        mock_cache.get.return_value = {"score": 0.5}
-        assert get_cached_sentiment_score("AAPL") == 0.5
-        
-        mock_cache.get.return_value = None
-        assert get_cached_sentiment_score("GOOG") == 0.0
+    """This server measures no sentiment, so the cached score is neutral for every symbol."""
+    assert get_cached_sentiment_score("AAPL") == 0.0
+    assert get_cached_sentiment_score("GOOG") == 0.0
 
 def test_get_market_news_no_key():
     with patch.dict("os.environ", {}, clear=True):
@@ -138,5 +137,8 @@ def test_analyze_social_sentiment_mocked_success():
                 mock_praw.Reddit.return_value = mock_reddit
 
                 res = analyze_social_sentiment("AAPL")
-                assert "Twitter: Found 1" in res
-                assert "Reddit: Found 1" in res
+                assert "Twitter (Real): 1 recent posts" in res
+                assert "Reddit (Real): 1 posts" in res
+                # The posts themselves are handed to the agent, not condensed into a number.
+                assert "AAPL is going up #bullish" in res
+                assert "AAPL DD" in res
