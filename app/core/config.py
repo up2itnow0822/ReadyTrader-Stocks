@@ -2,13 +2,9 @@ import os
 
 from dotenv import load_dotenv
 
+from common.switches import approval_mode, kill_switch_on, safety_switch_on  # noqa: F401 (re-exported)
+
 load_dotenv()
-
-
-def safety_switch_on(value: str | None) -> bool:
-    """A safety check's on/off setting: only an explicit false/0/no/off turns it off, so a typo
-    such as "treu" can never silently disable it."""
-    return (value or "").strip().lower() not in ("false", "0", "no", "off")
 
 
 class Settings:
@@ -23,12 +19,16 @@ class Settings:
     # with the MARKET_GUARD_* settings below; see docs/FALLING_KNIFE.md.
     CIRCUIT_BREAKER_PCT: float = float(os.getenv("CIRCUIT_BREAKER_PCT", "0.07"))
 
-    PAPER_MODE: bool = os.getenv("PAPER_MODE", "true").lower() == "true"
+    # Each switch fails toward the safe side (common/switches.py): paper mode stays on unless
+    # explicitly false/0/no/off; live trading needs exactly "true"; the kill switch halts on any
+    # value other than empty or false/0/no/off.
+    PAPER_MODE: bool = safety_switch_on(os.getenv("PAPER_MODE", "true"))
     LIVE_TRADING_ENABLED: bool = os.getenv("LIVE_TRADING_ENABLED", "false").strip().lower() == "true"
-    TRADING_HALTED: bool = os.getenv("TRADING_HALTED", "false").strip().lower() == "true"
+    TRADING_HALTED: bool = kill_switch_on(os.getenv("TRADING_HALTED", "false"))
 
     # Risk & execution
-    EXECUTION_APPROVAL_MODE: str = os.getenv("EXECUTION_APPROVAL_MODE", "auto").strip().lower()
+    # "auto" or "approve_each"; any other value requires approval (fails closed).
+    EXECUTION_APPROVAL_MODE: str = approval_mode(os.getenv("EXECUTION_APPROVAL_MODE", "auto"))
     EXECUTION_MODE: str = os.getenv("EXECUTION_MODE", "auto").strip().lower()
     RISK_PROFILE: str = os.getenv("RISK_PROFILE", "conservative").strip().lower()
 

@@ -1,19 +1,25 @@
 import asyncio
 import json
 import os
+import sys
+from pathlib import Path
 from typing import Set
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+if __package__ in (None, ""):
+    # `python app/api_server.py` puts app/ on sys.path, not the repository root (see app/main.py).
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.core.config import settings
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from pydantic import BaseModel  # noqa: E402
+
+from app.core.config import settings  # noqa: E402
 
 # Import core components from the main server
-from app.core.container import global_container
-from app.tools.trading import pre_trade_check
-from marketdata.store import TickerSnapshot
-from observability import build_log_context, log_event
+from app.core.container import global_container  # noqa: E402
+from app.tools.trading import live_order_refusal, paper_fill_price, pre_trade_check  # noqa: E402
+from marketdata.store import TickerSnapshot  # noqa: E402
+from observability import build_log_context, log_event  # noqa: E402
 
 # Initial context
 API_CTX = build_log_context(tool="api_server")
@@ -21,11 +27,18 @@ API_CTX = build_log_context(tool="api_server")
 app = FastAPI(title="ReadyTrader-Stocks Modern API")
 
 # Enable CORS for Next.js frontend
+# Only the dashboard may call this API from a browser. A wildcard would let any web page the
+# operator visits read the account and post approvals to 127.0.0.1.
+CORS_ORIGINS = [
+    o.strip()
+    for o in (os.getenv("API_CORS_ORIGINS") or "http://localhost:3000,http://127.0.0.1:3000").split(",")
+    if o.strip() and o.strip() != "*"
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict this to your frontend domain
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=CORS_ORIGINS,
+    allow_methods=["GET", "POST"],
+    allow_headers=["content-type"],
 )
 
 # Active WebSocket connections
@@ -116,7 +129,8 @@ async def approve_trade(req: ApprovalRequest):
                 # A proposal can wait until it expires while the market moves: re-run the Risk
                 # Guardian, with fresh daily bars, before anything executes.
                 check = pre_trade_check(
-                    p["symbol"], p["side"], p["amount"], p.get("price", 0.0), p.get("sentiment_score")
+                    p["symbol"], p["side"], p["amount"], p.get("price", 0.0), p.get("sentiment_score"),
+                    p.get("exchange", "alpaca"),
                 )
                 if not check["allowed"]:
                     log_event(
@@ -130,24 +144,45 @@ async def approve_trade(req: ApprovalRequest):
                     )
 
                 if settings.PAPER_MODE:
+                    fill_price, problem = paper_fill_price(p["side"], p.get("price") or 0.0, check.get("market_price"))
+                    if problem:
+                        raise HTTPException(status_code=409, detail=problem)
                     res = global_container.paper_engine.execute_trade(
                         user_id="agent_zero",
                         side=p["side"],
                         symbol=p["symbol"],
                         amount=p["amount"],
-                        price=p.get("price", 0.0),
-                        rationale=p.get("rationale", "api_approved")
+                        price=fill_price,
+                        rationale=p.get("rationale") or "api_approved"
                     )
+                    if str(res).startswith("Insufficient fund"):
+                        raise HTTPException(status_code=409, detail={"code": "insufficient_funds", "message": str(res)})
                     return {"ok": True, "result": res}
                 else:
                     # Live Brokerage Execution
                     exchange = p.get("exchange", "alpaca").lower()
+                    # The operator switches and the live policy apply at execution time too: the
+                    # configuration may have changed while the proposal waited.
+                    refusal = live_order_refusal(
+                        exchange, p["symbol"], p["side"], p["amount"], p.get("order_type", "market"), p.get("price") or 0.0
+                    )
+                    if refusal:
+                        raise HTTPException(status_code=409, detail=refusal)
                     if exchange not in global_container.brokerages:
-                        raise HTTPException(status_code=400, detail=f"Brokerage {exchange} is not supported.")
+                        raise HTTPException(
+                            status_code=400,
+                            detail={"code": "brokerage_not_supported", "message": f"Brokerage {exchange} is not supported."},
+                        )
 
                     brokerage = global_container.brokerages[exchange]
                     if not brokerage.is_available():
-                        raise HTTPException(status_code=400, detail=f"Brokerage {exchange} is not configured with API keys.")
+                        raise HTTPException(
+                            status_code=400,
+                            detail={
+                                "code": "brokerage_not_configured",
+                                "message": f"Brokerage {exchange} is not configured with API keys.",
+                            },
+                        )
 
                     try:
                         res = brokerage.place_order(
@@ -159,11 +194,11 @@ async def approve_trade(req: ApprovalRequest):
                         )
                         return {"ok": True, "result": res}
                     except Exception as e:
-                        raise HTTPException(status_code=500, detail=f"Execution error: {str(e)}")
+                        raise HTTPException(status_code=500, detail={"code": "execution_error", "message": str(e)})
 
             return {"ok": False, "error": "Unknown proposal kind"}
         else:
-            success = global_container.execution_store.cancel(req.request_id)
+            success = global_container.execution_store.cancel(req.request_id, req.confirm_token)
             return {"ok": success}
     except HTTPException:
         raise
@@ -176,9 +211,10 @@ async def get_portfolio():
     Get current portfolio state (paper or live).
     """
     if settings.PAPER_MODE:
-        balances = global_container.paper_engine.get_balances("agent_zero")
-        pnl = global_container.paper_engine.get_risk_metrics("agent_zero")
-        return {"balances": balances, "metrics": pnl}
+        engine = global_container.paper_engine
+        balances = engine.get_balances("agent_zero")
+        metrics = {"equity": engine.get_portfolio_value_usd("agent_zero"), **engine.get_risk_metrics("agent_zero")}
+        return {"balances": balances, "metrics": metrics}
     else:
         # For live mode, we'd need to query the wallet/CEX
         return {"error": "Live portfolio view not yet implemented in API"}
