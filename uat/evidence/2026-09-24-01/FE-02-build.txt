@@ -20,7 +20,8 @@ Type error: Cannot find name 'setPortfolio'. Did you mean 'fetchPortfolio'?
 [31m[1m>[22m[39m[90m 30 |[39m         setPortfolio(data)[33m;[39m
  [90m    |[39m         [31m[1m^[22m[39m
  [90m 31 |[39m       }
- [90m 32 |[39m     }[33m;[39m[0m
+ [90m 32 |[39m     }[33m;[39m
+ [90m 33 |[39m     fetchPortfolio()[33m;[39m[0m
 Next.js build worker exited with code: 1 and signal: null
 exit=1
 

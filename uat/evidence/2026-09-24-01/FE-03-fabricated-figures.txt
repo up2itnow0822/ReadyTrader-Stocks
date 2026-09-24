@@ -2,10 +2,10 @@ $ bash -c 'cd frontend/src/app && grep -n -E "48,500|7.4% Today|dummyChartData =
 # at 2026-09-24T07:30:48+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
 
 10:const dummyChartData = [
-47:            <h2>$48,500.00</h2>
-47:            <span className="success">$48,500.00</span>
+46:            <h2>$48,500.00</h2>
+47:            <span className="success">+7.4% Today</span>
 124:            <span>Trend Follower / AAPL</span>
-125:            <span className="success">+2.1%
+125:            <span className="success">+2.1%</span>
 128:            <span>Mean Reversion / TSLA</span>
 129:            <span className="danger">-1.4%</span>
 
