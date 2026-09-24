@@ -7,14 +7,16 @@ block.
 """
 
 import json
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock
+from zoneinfo import ZoneInfo
 
 import market_bars as mb
 import pytest
 
 import app.tools.trading as trading
-from app.core.config import settings
+from app.core.config import safety_switch_on, settings
 from app.core.container import global_container
 from core import market_guard as mg
 
@@ -303,3 +305,180 @@ def test_the_fetch_asks_the_provider_for_daily_bars(monkeypatch):
     bars = trading._fetch_daily_bars("WAL")
     assert calls == [("WAL", "1d", mg.BARS_REQUESTED)]
     assert mg.assess(bars).status == mg.STATUS_OK
+
+
+# ---------------------------------------------------------------- today's session must have a bar
+
+NEW_YORK = mg.Session(tz="America/New_York", open_hhmm="09:30")
+
+
+def ny_ms(year, month, day, hour=0, minute=0):
+    return int(datetime(year, month, day, hour, minute, tzinfo=ZoneInfo("America/New_York")).timestamp() * 1000)
+
+
+def bars_through(year, month, day, **kw):
+    """Daily bars stamped at New York midnight, as yfinance stamps them, the last on that date."""
+    return mb.calm(end_ms=ny_ms(year, month, day), **kw)
+
+
+def at(monkeypatch, now_ms):
+    monkeypatch.setattr(mg, "_now_ms", lambda: now_ms)
+
+
+def test_once_the_session_opens_yesterdays_bar_is_stale():
+    # Thursday 2026-09-24, 10:00 New York: the provider still ends at Wednesday.
+    reading = mg.assess(bars_through(2026, 9, 23), now_ms=ny_ms(2026, 9, 24, 10), session=NEW_YORK)
+    assert reading.status == mg.STATUS_STALE and not reading.falling_knife
+    assert "no daily bar yet for today's session (2026-09-24" in reading.detail
+
+
+def test_a_collapse_today_is_not_hidden_by_yesterdays_calm_bars():
+    # The case the check exists for: without today's bar the rule would read yesterday's calm tape.
+    calm_until_yesterday = bars_through(2026, 9, 23)
+    assert mg.assess(calm_until_yesterday, now_ms=ny_ms(2026, 9, 24, 10)).status == mg.STATUS_OK
+    assert mg.assess(calm_until_yesterday, now_ms=ny_ms(2026, 9, 24, 10), session=NEW_YORK).status == mg.STATUS_STALE
+
+
+def test_todays_partial_bar_is_current():
+    reading = mg.assess(bars_through(2026, 9, 24), now_ms=ny_ms(2026, 9, 24, 10), session=NEW_YORK)
+    assert reading.status == mg.STATUS_OK
+
+
+@pytest.mark.parametrize(
+    "now,last_bar",
+    [
+        (ny_ms(2026, 9, 24, 9, 29), (2026, 9, 23)),  # Thursday before the open
+        (ny_ms(2026, 9, 26, 12), (2026, 9, 25)),  # Saturday
+        (ny_ms(2026, 9, 28, 9, 0), (2026, 9, 25)),  # Monday before the open
+        (ny_ms(2026, 12, 3, 15), (2026, 12, 3)),  # a winter (EST) session day
+    ],
+    ids=["before-open", "saturday", "monday-pre-open", "winter"],
+)
+def test_outside_the_session_the_last_bar_is_current(now, last_bar):
+    assert mg.assess(bars_through(*last_bar), now_ms=now, session=NEW_YORK).status == mg.STATUS_OK
+
+
+def test_an_exchange_holiday_reads_as_stale_after_the_open():
+    # Labor Day 2026-09-07: no session, so no bar. Stale is the safe answer - a BUY would fill at
+    # the next open, on a price the check has not seen.
+    reading = mg.assess(bars_through(2026, 9, 4), now_ms=ny_ms(2026, 9, 7, 11), session=NEW_YORK)
+    assert reading.status == mg.STATUS_STALE
+
+
+def test_a_live_buy_with_no_bar_for_todays_session_is_blocked(monkeypatch):
+    monkeypatch.setattr(settings, "PAPER_MODE", False)
+    monkeypatch.setattr(settings, "MARKET_GUARD_ON_DATA_ERROR", "")
+    monkeypatch.setattr(settings, "MARKET_TIMEZONE", "US/Eastern")
+    monkeypatch.setattr(settings, "MARKET_HOURS_START", "09:30")
+    at(monkeypatch, ny_ms(2026, 9, 24, 10))
+    use_bars(monkeypatch, bars_through(2026, 9, 23))
+    payload = json.loads(trading.validate_trade_risk("buy", SYMBOL, 1000.0, 100000.0))
+    assert payload["data"]["result"]["allowed"] is False
+    assert payload["data"]["market"]["status"] == "stale"
+    assert "today's session" in payload["data"]["market"]["detail"]
+
+
+def test_the_session_follows_the_market_hours_setting(monkeypatch):
+    monkeypatch.setattr(settings, "PAPER_MODE", False)
+    monkeypatch.setattr(settings, "MARKET_GUARD_ON_DATA_ERROR", "")
+    monkeypatch.setattr(settings, "MARKET_HOURS_START", "11:00")
+    at(monkeypatch, ny_ms(2026, 9, 24, 10))
+    use_bars(monkeypatch, bars_through(2026, 9, 23))
+    payload = json.loads(trading.validate_trade_risk("buy", SYMBOL, 1000.0, 100000.0))
+    assert payload["data"]["market"]["status"] == "ok"
+
+
+def test_a_bad_market_timezone_fails_closed(monkeypatch):
+    monkeypatch.setattr(settings, "PAPER_MODE", False)
+    monkeypatch.setattr(settings, "MARKET_GUARD_ON_DATA_ERROR", "")
+    monkeypatch.setattr(settings, "MARKET_TIMEZONE", "Mars/Olympus_Mons")
+    payload = json.loads(trading.validate_trade_risk("buy", SYMBOL, 1000.0, 100000.0))
+    assert payload["data"]["result"]["allowed"] is False
+    assert payload["data"]["market"]["status"] == "unavailable"
+
+
+# ---------------------------------------------------------------- the on/off switch
+
+
+@pytest.mark.parametrize(
+    "raw,on",
+    [("true", True), ("", True), (None, True), ("treu", True), ("1", True), ("yes", True),
+     ("false", False), (" FALSE ", False), ("0", False), ("no", False), ("off", False)],
+)
+def test_only_an_explicit_off_value_disables_the_check(raw, on):
+    assert safety_switch_on(raw) is on
+
+
+# ---------------------------------------------------------------- approval-time recheck
+
+
+@pytest.fixture
+def approvals(monkeypatch, quiet_ledger):
+    from fastapi.testclient import TestClient
+
+    import app.api_server as api
+
+    monkeypatch.setattr(settings, "PAPER_MODE", True)
+    monkeypatch.setattr(settings, "EXECUTION_APPROVAL_MODE", "approve_each")
+    executed = []
+    monkeypatch.setattr(
+        type(global_container.paper_engine),
+        "execute_trade",
+        lambda self, **kw: executed.append(kw) or "filled",
+    )
+    return TestClient(api.app), executed
+
+
+def propose(side):
+    payload = json.loads(trading.place_stock_order(SYMBOL, side, 10.0, price=25.0))
+    assert payload["data"]["status"] == "pending_approval", payload
+    return payload["data"]
+
+
+def approve(client, proposal):
+    return client.post(
+        "/api/approve-trade",
+        json={"request_id": proposal["request_id"], "confirm_token": proposal["confirm_token"], "approve": True},
+    )
+
+
+def test_an_approved_buy_is_rechecked_against_fresh_bars(monkeypatch, approvals):
+    client, executed = approvals
+    proposal = propose("buy")  # calm tape: proposed
+    use_bars(monkeypatch, mb.collapse(drop=0.30))  # the stock collapses while it waits
+    response = approve(client, proposal)
+    assert response.status_code == 409
+    assert response.json()["detail"]["code"] == "risk_blocked"
+    assert response.json()["detail"]["market"]["falling_knife"] is True
+    assert executed == []
+
+
+def test_an_approved_buy_on_a_calm_tape_executes(approvals):
+    client, executed = approvals
+    response = approve(client, propose("buy"))
+    assert response.status_code == 200 and response.json()["ok"] is True
+    assert len(executed) == 1 and executed[0]["side"] == "buy"
+
+
+def test_an_approved_sell_executes_during_a_collapse(monkeypatch, approvals):
+    client, executed = approvals
+    proposal = propose("sell")
+    use_bars(monkeypatch, mb.collapse(drop=0.30))
+    assert approve(client, proposal).status_code == 200
+    assert len(executed) == 1 and executed[0]["side"] == "sell"
+
+
+def test_the_recheck_uses_the_proposals_sentiment_reading(monkeypatch, approvals):
+    client, executed = approvals
+    guardian = global_container.risk_guardian
+    seen = []
+    real = guardian.validate_trade
+
+    def spy(*args, **kwargs):
+        seen.append(kwargs.get("sentiment_score"))
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(guardian, "validate_trade", spy)
+    payload = json.loads(trading.place_stock_order(SYMBOL, "buy", 10.0, price=25.0, sentiment_score=-0.4))
+    assert approve(client, payload["data"]).status_code == 200
+    assert seen == [-0.4, -0.4]  # at proposal and again at approval
