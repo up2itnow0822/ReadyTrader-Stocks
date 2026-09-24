@@ -45,6 +45,14 @@ class ExecutionProposal:
     cancelled_at: Optional[float] = None
 
 
+
+# What an operator needs to see to decide on a proposal. The confirm_token is never listed.
+_SUMMARY_FIELDS = ("symbol", "side", "amount", "order_type", "price", "exchange", "rationale", "paper_mode")
+
+
+def _order_summary(payload: Dict[str, Any]) -> Dict[str, Any]:
+    return {k: payload.get(k) for k in _SUMMARY_FIELDS if k in (payload or {})}
+
 class ExecutionStore:
     """
     In-memory store for two-step execution proposals.
@@ -231,6 +239,7 @@ class ExecutionStore:
                         "kind": p.kind,
                         "created_at": p.created_at,
                         "expires_at": p.expires_at,
+                        "order": _order_summary(p.payload),
                     }
                 )
             # Optionally merge persisted proposals (same-session only) that aren't loaded yet.
@@ -238,22 +247,27 @@ class ExecutionStore:
             if conn is not None:
                 rows = conn.execute(
                     """
-                    SELECT request_id, kind, created_at, expires_at
+                    SELECT request_id, kind, created_at, expires_at, payload_json
                     FROM execution_proposals
                     WHERE session_id = ? AND confirmed_at IS NULL AND cancelled_at IS NULL AND expires_at > ?
                     """,
                     (self._session_id, float(now)),
                 ).fetchall()
                 seen = {p["request_id"] for p in pending}
-                for rid, kind, created_at, expires_at in rows:
+                for rid, kind, created_at, expires_at, payload_json in rows:
                     if str(rid) in seen:
                         continue
+                    try:
+                        payload = json.loads(payload_json or "{}")
+                    except ValueError:
+                        payload = {}
                     pending.append(
                         {
                             "request_id": str(rid),
                             "kind": str(kind),
                             "created_at": float(created_at),
                             "expires_at": float(expires_at),
+                            "order": _order_summary(payload),
                         }
                     )
             return {"pending": pending}
@@ -294,4 +308,3 @@ class ExecutionStore:
             self._items[request_id] = p
             self._persist(p)
             return p
-

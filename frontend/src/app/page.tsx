@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ShieldCheck, Zap } from 'lucide-react';
 import { useMarketData } from '@/hooks/useMarketData';
-import { usePendingApprovals } from '@/hooks/usePendingApprovals';
+import { usePendingApprovals, type PendingOrder } from '@/hooks/usePendingApprovals';
 import { API_URL } from '@/lib/api';
 
 type Portfolio = {
@@ -37,18 +37,29 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // The API approves a proposal only with its confirm_token, which the agent received when it
-  // placed the order; it re-runs the Risk Guardian before anything executes.
-  const review = async (requestId: string) => {
-    const token = window.prompt('Paste the confirm_token your agent received with this proposal to approve it:');
+  // The API approves or rejects a proposal only with its confirm_token, which the agent received
+  // when it placed the order; an approval re-runs the Risk Guardian before anything executes.
+  const review = async (requestId: string, approve: boolean) => {
+    const verb = approve ? 'approve' : 'reject';
+    const token = window.prompt(`Paste the confirm_token your agent received with this proposal to ${verb} it:`);
     if (!token) return;
-    const ok = await handleApproval(requestId, token.trim(), true);
+    const ok = await handleApproval(requestId, token.trim(), approve);
     window.alert(
-      ok
-        ? 'Approved: the trade was re-checked and sent.'
-        : 'Not approved: the token was wrong, the proposal expired, or the Risk Guardian refused it on re-check.'
+      approve
+        ? ok
+          ? 'Approved: the trade was re-checked and sent.'
+          : 'Not approved: the token was wrong, the proposal expired, or the Risk Guardian refused it on re-check.'
+        : ok
+          ? 'Rejected: the proposal was cancelled.'
+          : 'Not rejected: the token was wrong or the proposal is no longer pending.'
     );
   };
+
+  const describe = (o?: PendingOrder) =>
+    o && o.symbol
+      ? `${(o.side ?? '').toUpperCase()} ${Number(o.amount ?? 0).toLocaleString()} ${o.symbol} ${o.order_type ?? 'market'}` +
+        `${o.price ? ` @ ${o.price}` : ''}${o.paper_mode === false ? ` - LIVE via ${o.exchange ?? '?'}` : ' - paper account'}`
+      : 'Order details unavailable';
 
   const metrics = portfolio?.metrics;
   const balances = Object.entries(portfolio?.balances ?? {});
@@ -137,12 +148,18 @@ export default function Dashboard() {
             approvals.map((a) => (
               <div key={a.request_id} className="approval-item">
                 <div className="approval-info">
-                  <span className="kind">{a.kind.replace('_', ' ')}</span>
+                  <span className="kind">{describe(a.order)}</span>
+                  {a.order?.rationale && <span className="muted">{a.order.rationale}</span>}
                   <span className="muted">ID: {a.request_id.slice(0, 8)}...</span>
                 </div>
-                <button className="btn btn-primary compact" onClick={() => review(a.request_id)}>
-                  Approve
-                </button>
+                <div className="approval-actions">
+                  <button className="btn btn-primary compact" onClick={() => review(a.request_id, true)}>
+                    Approve
+                  </button>
+                  <button className="btn compact" onClick={() => review(a.request_id, false)}>
+                    Reject
+                  </button>
+                </div>
               </div>
             ))
           )}

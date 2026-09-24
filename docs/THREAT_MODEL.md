@@ -18,7 +18,8 @@ ReadyTrader-Stocks is a **Safety-First Bridge**. It is designed to minimize "fat
 - **Threat**: The AI agent attempts to buy a massive amount of a volatile stock or enters a trade with an incorrect price.
 - **Mitigation**:
     - **Execution Approval Mode**: Set `EXECUTION_APPROVAL_MODE=approve_each` to require manual human confirmation for every trade.
-    - **Position size**: the Risk Guardian refuses any order over 5% of the account's equity, valued at the latest price, and every BUY after a 5% daily loss or a 10% drawdown.
+    - **Position size**: the Risk Guardian refuses any order that adds exposure worth over 5% of the account's equity (valued at the latest price), and every order that adds exposure after a 5% daily loss or a 10% drawdown; selling out of a position stays possible.
+    - **Mode**: a proposal made in paper mode is never executed live (and the reverse).
     - **Falling Knife**: BUYs into a stock still falling after a 15% drop are refused (`docs/FALLING_KNIFE.md`).
     - **Policy limits**: `MAX_ORDER_AMOUNT` caps shares per live order; an unreadable value refuses every live order.
     - Not active in this release: the price-collar and Pattern Day Trader rules in `core/risk.py` are never given the inputs they need, so they never fire. Use `approve_each` and `MAX_ORDER_AMOUNT` for fat-finger protection.

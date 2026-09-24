@@ -281,6 +281,17 @@ def test_the_order_path_lets_a_sell_through_during_a_collapse(monkeypatch, quiet
 
 
 def test_the_order_path_blocks_a_live_buy_when_data_is_unreadable(monkeypatch, quiet_ledger):
+    class Broker:  # configured, with a readable account, so only the market guard can refuse
+        def is_available(self):
+            return True
+
+        def get_account_balance(self):
+            return {"equity": 1_000_000.0}
+
+        def list_positions(self):
+            return []
+
+    monkeypatch.setitem(global_container.brokerages, "alpaca", Broker())
     monkeypatch.setattr(settings, "PAPER_MODE", False)
     monkeypatch.setattr(settings, "MARKET_GUARD_ON_DATA_ERROR", "")
     fail_fetch(monkeypatch)

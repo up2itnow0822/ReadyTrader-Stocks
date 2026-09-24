@@ -17,27 +17,41 @@ class RiskGuardian:
                       price: Optional[float] = None,
                       last_close_price: Optional[float] = None,
                       day_trades_count: int = 0,
-                      market: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                      market: Optional[Dict[str, Any]] = None,
+                      increases_exposure: Optional[bool] = None) -> Dict[str, Any]:
         """
         Validate a trade against safety rules.
+
+        `increases_exposure` says whether the order opens or adds to a position. The order path works
+        it out from the current position and passes it (selling out of a long is an exit; selling more
+        than is held opens a short), and `amount_usd` is then the value of the part that adds exposure.
+        The drawdown, daily-loss, sentiment and Falling Knife rules refuse only orders that add
+        exposure. Without it (validate_trade_risk) a BUY is taken to add exposure and a SELL not.
         """
+        adds_exposure = (side.lower() == 'buy') if increases_exposure is None else bool(increases_exposure)
         # Rule 0: System State Checks
         # Max Drawdown Check (10%)
         # If drawdown is 10%, we only allow reducing risk (SELLs), not BUYs?
         # Or we block everything? Usually block BUYs.
-        if current_drawdown_pct >= 0.10 and side.lower() == 'buy':
+        if current_drawdown_pct >= 0.10 and adds_exposure:
              return {
                 "allowed": False,
-                "reason": f"Max Drawdown Limit Hit ({current_drawdown_pct:.1%}). Trading HALTED for Buys."
+                "reason": (
+                    f"Max Drawdown Limit Hit ({current_drawdown_pct:.1%}). Orders that add exposure are halted; "
+                    "orders that reduce or close a position are allowed."
+                ),
              }
              
         # Daily Loss Limit (5%)
         # If we lost 5% today, stop trading.
         # daily_loss_pct is usually negative (e.g. -0.05)
-        if daily_loss_pct <= -0.05 and side.lower() == 'buy':
+        if daily_loss_pct <= -0.05 and adds_exposure:
              return {
                 "allowed": False,
-                "reason": f"Daily Loss Limit Hit ({daily_loss_pct:.1%}). Trading HALTED for Buys."
+                "reason": (
+                    f"Daily Loss Limit Hit ({daily_loss_pct:.1%}). Orders that add exposure are halted; "
+                    "orders that reduce or close a position are allowed."
+                ),
              }
 
         # Rule 1: Position Sizing
@@ -53,7 +67,7 @@ class RiskGuardian:
 
         # Rule 2: "Don't Catch Falling Knives"
         # If sentiment is very bearish (< -0.5) and trying to Buy
-        if side.lower() == 'buy' and sentiment_score < -0.5:
+        if side.lower() == 'buy' and adds_exposure and sentiment_score < -0.5:
              return {
                 "allowed": False,
                 "reason": "Guardian blocked BUY due to Extreme Bearish sentiment (Falling Knife protection)."
@@ -62,7 +76,8 @@ class RiskGuardian:
         # Rule 2b: Falling Knife (price). `market` is a core/market_guard.py reading prepared by the
         # tools layer. A BUY is blocked while the stock is still falling after a large drop, and -
         # when the operator requires the check - while the check cannot run.
-        if side.lower() == 'buy' and market:
+        # A BUY that only covers a short is an exit, like a SELL, and is not refused.
+        if side.lower() == 'buy' and adds_exposure and market:
             if market.get("falling_knife"):
                 return {"allowed": False, "reason": _knife_reason(symbol, market)}
             if market.get("required") and market.get("status") not in ("ok", "disabled"):
@@ -91,8 +106,8 @@ class RiskGuardian:
                  "reason": "Pattern Day Trader protection: >3 day trades in account under $25k."
              }
             
-        # Rule 5: Large Trade Confirmation
-        # Any trade > $5000 requires manual approval even if allowed by logic
+        # Rule 5: Large trade flag. Advisory: a trade over $5,000 is flagged; nothing holds it for a
+        # human unless EXECUTION_APPROVAL_MODE=approve_each.
         needs_confirmation = False
         if amount_usd > 5000.0:
             needs_confirmation = True
@@ -100,7 +115,11 @@ class RiskGuardian:
         return {
             "allowed": True,
             "needs_confirmation": needs_confirmation,
-            "reason": "Trade looks safe but requires manual confirmation." if needs_confirmation else "Trade looks safe."
+            "reason": (
+                "Trade looks safe. It is over $5,000: consider EXECUTION_APPROVAL_MODE=approve_each to approve such trades."
+                if needs_confirmation
+                else "Trade looks safe."
+            ),
         }
 
 

@@ -3,11 +3,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import { API_URL } from '@/lib/api';
 
+export type PendingOrder = {
+    symbol?: string;
+    side?: string;
+    amount?: number;
+    order_type?: string;
+    price?: number;
+    exchange?: string;
+    rationale?: string;
+    paper_mode?: boolean;
+};
+
 export type PendingApproval = {
     request_id: string;
     kind: string;
     created_at: number;
     expires_at: number;
+    order?: PendingOrder;
 };
 
 export function usePendingApprovals() {
@@ -37,7 +49,9 @@ export function usePendingApprovals() {
             })
         });
 
-        if (res.ok) {
+        // A cancel with a wrong token answers 200 {"ok": false}: read the body, not just the status.
+        const body = await res.json().catch(() => ({}));
+        if (res.ok && body.ok !== false) {
             fetchApprovals();
             return true;
         }

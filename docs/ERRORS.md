@@ -4,8 +4,8 @@ Every tool answers `{"ok": true, "data": ...}` or `{"ok": false, "error": {"code
 The `code` is stable; the `message` says what happened in words; `data` carries the numbers
 (limits, prices, the Falling Knife `market` reading). The approval API (`/api/approve-trade`)
 answers a refusal with HTTP `409` (or `400` for a brokerage problem) and the same `code` in
-`detail`; an unknown, expired, cancelled or already-approved proposal, or a wrong `confirm_token`,
-answers `400` with the reason as text.
+`detail`; an unknown proposal answers `404`, a wrong `confirm_token` `403`, and an expired,
+cancelled or already-approved proposal `409`, with the reason as text.
 
 | Issue | Potential Fix |
 | :--- | :--- |
@@ -19,10 +19,12 @@ answers `400` with the reason as text.
 ## Error codes
 
 ### Risk
-- `risk_blocked`: the Risk Guardian refused the trade. The message is the reason: position size over
-  5% of equity, the 5% daily-loss or 10% drawdown limit (BUYs only), the Falling Knife price rule
-  (`docs/FALLING_KNIFE.md`; `data.market` has the reading), your own `sentiment_score` below -0.5,
-  or an account/price the check could not read (a BUY then fails closed).
+- `risk_blocked`: the Risk Guardian refused the trade. The message is the reason: new exposure over
+  5% of equity, the 5% daily-loss or 10% drawdown limit (orders that add exposure), the Falling Knife
+  price rule (`docs/FALLING_KNIFE.md`; `data.market` has the reading), your own `sentiment_score`
+  below -0.5, or an account/price the check could not read (an order that adds exposure then fails
+  closed). Selling out of a position is never sized as new exposure; `data` includes
+  `position_units` and `exposure_added_units`.
 - `risk_validation_error`: the risk check itself raised; the message has the exception.
 
 ### Requests
@@ -30,6 +32,8 @@ answers `400` with the reason as text.
   non-numeric amount, an order type other than market/limit, a limit with no positive price, or an
   insight outside the documented fields.
 - `invalid_mode`: `deposit_paper_funds` / `reset_paper_wallet` called in live mode.
+- `mode_mismatch`: (approval API) the proposal was made in paper mode and the API runs live, or the
+  reverse; nothing was executed.
 
 ### Live trading switches and policy
 - `live_trading_disabled`: `PAPER_MODE=false` but `LIVE_TRADING_ENABLED` is not `true`.
