@@ -1,34 +1,62 @@
+# Smithery configuration: https://smithery.ai/docs/config#smitheryyaml
+# Smithery builds the Dockerfile and starts the MCP server on stdio inside it. Paper mode is the
+# default and needs no keys; live trading needs PAPER_MODE=false AND LIVE_TRADING_ENABLED=true.
 startCommand:
   type: stdio
-  command: python
-  args:
-    - app/main.py
-name: ReadyTrader-Stocks
-description: >-
-  A specialized bridge that turns your AI Agent into a professional crypto trading operator.
-  Features specific "Intelligence vs. Execution" separation of powers, a "Risk Guardian" safety layer,
-  and deep DeFi integrations (Aave, Uniswap).
-projectUrl: https://github.com/up2itnow/ReadyTrader-Stocks
-configSchema:
-  type: object
-  properties:
-    ALPACA_API_KEY:
-      type: string
-      description: Alpaca API Key for stock trading
-    ALPACA_API_SECRET:
-      type: string
-      description: Alpaca API Secret for stock trading
-    PAPER_MODE:
-      type: string
-      description: Set to true for virtual paper trading (default)
-      default: "true"
-    RISK_PROFILE:
-      type: string
-      description: "Risk enforcement profile ('conservative', 'moderate', 'aggressive')."
-      default: "conservative"
-    EXECUTION_APPROVAL_MODE:
-      type: string
-      description: 'auto' or 'approve_each' to require human confirmation for every trade.
-      default: "auto"
-      description: "API Secret for centralized exchange execution."
-  required: []
+  configSchema:
+    type: object
+    properties:
+      PAPER_MODE:
+        type: string
+        description: "Paper trading in a local ledger (default). 'false' for live brokerage orders."
+        default: "true"
+      LIVE_TRADING_ENABLED:
+        type: string
+        description: "Must be exactly 'true' (with PAPER_MODE=false) for any live order."
+        default: "false"
+      TRADING_HALTED:
+        type: string
+        description: "Kill switch: any value other than empty/false/0/no/off refuses every live order."
+        default: "false"
+      EXECUTION_APPROVAL_MODE:
+        type: string
+        description: "'auto' executes orders; 'approve_each' (or any other value) makes each order a proposal to approve."
+        default: "auto"
+      MAX_ORDER_AMOUNT:
+        type: string
+        description: "Largest live order in shares (unset = no limit)."
+      ALLOW_TICKERS:
+        type: string
+        description: "Comma-separated tickers live orders may trade (unset = all)."
+      ALPACA_API_KEY:
+        type: string
+        description: "Alpaca API key (live mode only)."
+      ALPACA_API_SECRET:
+        type: string
+        description: "Alpaca API secret (live mode only)."
+      ALPACA_PAPER:
+        type: string
+        description: "Live Alpaca orders go to your Alpaca paper account unless this is 'false'."
+        default: "true"
+      NEWSAPI_KEY:
+        type: string
+        description: "NewsAPI key for get_financial_news (optional)."
+      ALPHAVANTAGE_API_KEY:
+        type: string
+        description: "Alpha Vantage key for get_market_news (optional)."
+    required: []
+  commandFunction:
+    # Every setting is passed to the server as an environment variable of the same name.
+    |-
+    (config) => ({
+      command: 'python',
+      args: ['app/main.py'],
+      env: Object.fromEntries(
+        Object.entries(config || {})
+          .filter(([, value]) => value !== undefined && value !== null && value !== '')
+          .map(([key, value]) => [key, String(value)])
+      )
+    })
+  exampleConfig:
+    PAPER_MODE: "true"
+    EXECUTION_APPROVAL_MODE: "auto"

@@ -29,6 +29,14 @@ def calm_market(monkeypatch):
     import app.tools.trading as trading
 
     monkeypatch.setattr(trading, "_fetch_daily_bars", lambda symbol: market_bars.calm())
+    # Orders are valued at the latest quote when no daily close was read (a SELL); no test may
+    # reach Yahoo for it either.
+    from app.core.container import global_container
+
+    last = market_bars.calm()[-1][4]
+    monkeypatch.setattr(
+        global_container.exchange_provider, "fetch_ticker", lambda symbol: {"symbol": symbol, "last": last, "close": last}
+    )
 
 @pytest.fixture
 def container():
