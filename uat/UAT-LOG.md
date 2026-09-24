@@ -6,10 +6,10 @@
 ## Run 2026-09-24-01 — ReadyTrader-Stocks
 
 - Branch: `uat/2026-09-24-stocks`  |  Base: `main@e389057`
-- Started: 2026-09-24T07:08:16+00:00  |  Updated: 2026-09-24T08:47:12+00:00
+- Started: 2026-09-24T07:08:16+00:00  |  Updated: 2026-09-24T15:41:16+00:00
 - Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tools, paper trading, risk guardian, api_server approvals, docs/README/configs, CI, frontend build. Out: live brokerage orders (no credentials; live trading is a hard gate), Docker (no daemon in sandbox)
 - Verdict: **CLEAN with BLOCKED items**
-- Totals: 72 checks · 20 pass · 50 fail (50 verified fixed, 0 open, 0 fixed-unverified, 0 regressed, 0 wontfix) · 2 blocked
+- Totals: 82 checks · 21 pass · 59 fail (59 verified fixed, 0 open, 0 fixed-unverified, 0 regressed, 0 wontfix) · 2 blocked
 
 ### User journeys exercised
 
@@ -25,17 +25,17 @@
 | Section | Pass | Fail | Verified fixed | Blocked |
 |---|---|---|---|---|
 | preflight | 2 | 8 | 8 | 0 |
-| backend | 8 | 18 | 18 | 0 |
+| backend | 8 | 23 | 23 | 0 |
 | data | 1 | 2 | 2 | 0 |
 | memory | 1 | 1 | 1 | 0 |
-| frontend | 2 | 4 | 4 | 0 |
+| frontend | 2 | 6 | 6 | 0 |
 | integrations | 2 | 2 | 2 | 1 |
-| cli | 1 | 2 | 2 | 0 |
-| config | 1 | 7 | 7 | 0 |
+| cli | 1 | 3 | 3 | 0 |
+| config | 1 | 8 | 8 | 0 |
 | docs | 0 | 6 | 6 | 1 |
-| regression | 2 | 0 | 0 | 0 |
+| regression | 3 | 0 | 0 | 0 |
 
-### Findings (52)
+### Findings (61)
 
 #### PRE-03 — Fresh install can import the MCP server (python app/main.py)  [FAIL · critical · **VERIFIED**]
 
@@ -190,6 +190,32 @@
   - Commit: `0beffae`
   - Regression test: tests/test_order_path.py
 - Retest 1 (2026-09-24T08:07:19+00:00): **PASS** — proposals that break the policy are refused when proposed (ticker_not_allowed, order_amount_too_large); proposals created while the policy was unset are refused at approval with 409 and the rule's code · evidence: [BE-23-retest-2.txt](evidence/2026-09-24-01/BE-23-retest-2.txt)
+
+#### BE-30 — Selling out of a position is never sized as new exposure  [FAIL · high · **VERIFIED**]
+
+- Section: `backend`
+- Steps: Paper, faked price 100.40: three buys of 39 AAPL (~3.9% each), then sell all 117 in one order
+- Expected: The exit fills: it reduces exposure
+- Observed: risk_blocked 'Position size too large (11.7%)': the size rule values every order, exits included, as new exposure. Found by the review of ReadyTrader-FOREX (its BE-26)
+- Evidence: [BE-30.txt](evidence/2026-09-24-01/BE-30.txt)
+- Fix: pre_trade_check sizes only the exposure an order adds (paper ledger / brokerage list_positions); risk rules refuse only orders that add exposure
+  - Files: `app/tools/trading.py`, `core/risk.py`
+  - Commit: `5fb2edf`
+  - Regression test: tests/test_order_path.py (exits tests)
+- Retest 1 (2026-09-24T15:39:06+00:00): **PASS** — The 117-share position (11.7% of the account) sells in one order · evidence: [BE-30-retest.txt](evidence/2026-09-24-01/BE-30-retest.txt)
+
+#### BE-32 — A proposal executes in the mode it was proposed in  [FAIL · high · **VERIFIED**]
+
+- Section: `backend`
+- Steps: approve_each: propose AAPL buy 1 in paper mode; approve through an API process running PAPER_MODE=false with a fake broker
+- Expected: Refused: a paper proposal never becomes a live order
+- Observed: 200 ok and the broker received the order: proposals record no mode (FOREX BE-28)
+- Evidence: [BE-30.txt](evidence/2026-09-24-01/BE-30.txt)
+- Fix: Proposals record paper_mode; the approval API refuses the other mode (409 mode_mismatch)
+  - Files: `app/tools/trading.py`, `app/api_server.py`
+  - Commit: `5fb2edf`
+  - Regression test: tests/test_order_path.py::test_a_paper_proposal_never_executes_live
+- Retest 1 (2026-09-24T15:39:06+00:00): **PASS** — The paper proposal approved by a live API answers 409 mode_mismatch; the broker received nothing · evidence: [BE-32-retest.txt](evidence/2026-09-24-01/BE-32-retest.txt)
 
 #### CF-03 — TRADING_HALTED kill switch halts live orders for any 'on' value  [FAIL · high · **VERIFIED**]
 
@@ -574,6 +600,31 @@
   - Commit: `352bd67`
 - Retest 1 (2026-09-24T07:37:21+00:00): **PASS** — with the API stopped the pill reads 'API offline' and the portfolio card says the API is not reachable (the failed requests are those calls); with it running the pill reads 'Paper Mode' (FE-03-retest-dashboard.json) · evidence: [FE-05-retest-api-offline.json](evidence/2026-09-24-01/FE-05-retest-api-offline.json)
 
+#### FE-07 — The dashboard is readable at phone width (390x844)  [FAIL · medium · **VERIFIED**]
+
+- Section: `frontend`
+- Steps: Paper ledger with 25,000 USD and 2 AAPL; load / at 390x844
+- Expected: Single-column layout; balances and equity readable with no horizontal scroll
+- Observed: The fixed 260 px sidebar leaves 130 px for the content (main starts at x=260, 407 px wide) and the portfolio card is clipped at the right edge: the equity, the AAPL and USD amounts are unreadable (FE-07-mobile.png). Found by the same probe on ReadyTrader-FOREX (its FE-05)
+- Evidence: [FE-07.txt](evidence/2026-09-24-01/FE-07.txt)
+- Fix: Media query below 900 px: static top sidebar, single-column grid
+  - Files: `frontend/src/app/globals.css`
+  - Commit: `fb843a5`
+- Retest 1 (2026-09-24T12:31:05+00:00): **PASS** — At 390x844 main starts at x=0 and fills the width; equity $25,000.00, the AAPL and USD balances and drawdown are readable (FE-07-retest-mobile.png) · evidence: [FE-07-retest.txt](evidence/2026-09-24-01/FE-07-retest.txt)
+
+#### FE-08 — The operator can see what a proposal is before approving it, and can reject it  [FAIL · medium · **VERIFIED**]
+
+- Section: `frontend`
+- Steps: GET /api/pending-approvals with a pending AAPL proposal (what the dashboard's Guard Rail renders)
+- Expected: Symbol, side, amount, order type, venue and mode per proposal; Approve and Reject
+- Observed: Only request_id, kind and times: the dashboard shows 'stock order ID: ...' with a single Approve button (FOREX FE-07)
+- Evidence: [BE-30.txt](evidence/2026-09-24-01/BE-30.txt)
+- Fix: Pending list carries each order's summary (no token); the Guard Rail shows it with Approve and Reject
+  - Files: `execution/store.py`, `frontend/src/app/page.tsx`, `frontend/src/hooks/usePendingApprovals.ts`, `frontend/src/app/globals.css`
+  - Commit: `5fb2edf`
+  - Regression test: tests/test_order_path.py::test_the_pending_list_shows_the_order_but_never_the_token
+- Retest 1 (2026-09-24T15:39:37+00:00): **PASS** — The dashboard's Guard Rail shows 'BUY 2 AAPL market - paper account' with Approve and Reject; /api/pending-approvals carries the order and no token · evidence: [FE-08-retest-2.txt](evidence/2026-09-24-01/FE-08-retest-2.txt)
+
 #### IN-04 — get_market_news, fetch_rss_news and get_market_sentiment  [FAIL · medium · **VERIFIED**]
 
 - Section: `integrations`  |  Journey: research a stock
@@ -642,6 +693,45 @@
   - Regression test: tests/test_order_path.py
 - Retest 1 (2026-09-24T08:16:33+00:00): **PASS** — -50000 and 0 refused with invalid_request; the ledger stays at 1000 USD · evidence: [BE-27-retest.txt](evidence/2026-09-24-01/BE-27-retest.txt)
 
+#### BE-29 — Approval API error paths: bad bodies 422, unknown ids 404, wrong token 403, no internals  [FAIL · low · **VERIFIED**]
+
+- Section: `backend`
+- Steps: POST /api/approve-trade with {}, invalid JSON, wrong types, an unknown request_id; GET an unknown route; count tracebacks
+- Expected: 422 malformed; 404 unknown proposal; 403 wrong token; 409 no longer approvable; no stack traces
+- Observed: Malformed bodies 422; unknown route 404; no tracebacks. An unknown request_id answers 400 'Unknown request_id', the same status as a wrong token or an expired proposal. Found by the same probe on ReadyTrader-FOREX (its BE-23)
+- Evidence: [BE-29.txt](evidence/2026-09-24-01/BE-29.txt)
+- Fix: approve_trade maps the store's refusal to 404/403/409; docs updated
+  - Files: `app/api_server.py`, `docs/ERRORS.md`, `README.md`, `RUNBOOK.md`
+  - Commit: `d9d65b6`
+  - Regression test: tests/test_order_path.py::test_approval_errors_say_which_problem_it_is
+- Retest 1 (2026-09-24T12:28:39+00:00): **PASS** — Unknown request_id now 404; malformed bodies 422; no tracebacks (403/409 pinned by the regression test) · evidence: [BE-29-retest.txt](evidence/2026-09-24-01/BE-29-retest.txt)
+
+#### BE-31 — validate_trade_risk does not promise a confirmation the order path never asks for  [FAIL · low · **VERIFIED**]
+
+- Section: `backend`
+- Steps: validate_trade_risk buy AAPL 8,000 USD on 200,000; approval mode auto
+- Expected: The verdict describes what will happen
+- Observed: 'Trade looks safe but requires manual confirmation.' while auto mode executes such orders immediately; nothing reads needs_confirmation (FOREX BE-30)
+- Evidence: [BE-30.txt](evidence/2026-09-24-01/BE-30.txt)
+- Fix: The over-$5,000 verdict is advisory and points at approve_each
+  - Files: `core/risk.py`
+  - Commit: `5fb2edf`
+  - Regression test: tests/test_order_path.py::test_a_large_trade_verdict_does_not_promise_a_confirmation
+- Retest 1 (2026-09-24T15:39:06+00:00): **PASS** — Verdict: 'Trade looks safe. It is over $5,000: consider EXECUTION_APPROVAL_MODE=approve_each to approve such trades.' · evidence: [BE-31-retest.txt](evidence/2026-09-24-01/BE-31-retest.txt)
+
+#### BE-33 — The API's WebSocket answers only the dashboard's origins  [FAIL · low · **VERIFIED**]
+
+- Section: `backend`
+- Steps: Open /ws with Origin https://evil.example
+- Expected: Refused (the HTTP routes' CORS policy)
+- Observed: Connected: CORS does not cover WebSockets (FOREX BE-31)
+- Evidence: [BE-30.txt](evidence/2026-09-24-01/BE-30.txt)
+- Fix: /ws closes a browser connection whose Origin is not in API_CORS_ORIGINS
+  - Files: `app/api_server.py`
+  - Commit: `5fb2edf`
+  - Regression test: tests/test_order_path.py::test_a_web_page_elsewhere_cannot_open_the_websocket
+- Retest 1 (2026-09-24T15:39:06+00:00): **PASS** — Origin https://evil.example: refused · evidence: [BE-33-retest.txt](evidence/2026-09-24-01/BE-33-retest.txt)
+
 #### CF-01 — env.example lists the variables the code reads  [FAIL · low · **VERIFIED**]
 
 - Section: `config`  |  Journey: install and connect
@@ -669,6 +759,19 @@
   - Regression test: tests/test_switches.py
 - Retest 1 (2026-09-24T08:23:39+00:00): **PASS** — with .env copied from env.example the wizard reports the brokerage keys not set and get_financial_news answers not_configured · evidence: [CF-08-retest.txt](evidence/2026-09-24-01/CF-08-retest.txt)
 
+#### CF-09 — A malformed setting that nothing applies does not stop the server  [FAIL · low · **VERIFIED**]
+
+- Section: `config`
+- Steps: Start the MCP server with CIRCUIT_BREAKER_PCT=7% or RATE_LIMIT_DEFAULT_PER_MIN=lots; call get_stock_price
+- Expected: Both settings are read for compatibility but applied nowhere, so the server starts and answers
+- Observed: Each crashes the server at import (ValueError from float()/int() in app/core/config.py); the client gets no tools. Found while running the same probe on ReadyTrader-FOREX (its CF-05)
+- Evidence: [CF-09.txt](evidence/2026-09-24-01/CF-09.txt)
+- Fix: _unapplied_number() parses the two unapplied settings leniently
+  - Files: `app/core/config.py`
+  - Commit: `491e203`
+  - Regression test: tests/test_switches.py
+- Retest 1 (2026-09-24T12:26:46+00:00): **PASS** — With CIRCUIT_BREAKER_PCT=7% or RATE_LIMIT_DEFAULT_PER_MIN=lots the server starts and get_stock_price answers · evidence: [CF-09-retest.txt](evidence/2026-09-24-01/CF-09-retest.txt)
+
 #### CL-03 — examples/verify_stocks.py and verify_live_strategy.py  [FAIL · low · **VERIFIED**]
 
 - Section: `cli`
@@ -682,6 +785,19 @@
   - Commit: `615ac72`
   - Regression test: tests/test_strategy_sma.py::test_the_strategy_module_registers_the_pandas_ta_accessor_itself
 - Retest 1 (2026-09-24T07:42:26+00:00): **PASS** — verify_stocks: quote + paper trade in a temp DB, SUCCESS; verify_live_strategy: Alpaca unavailable without keys, SMA result without error, SUCCESS · evidence: [CL-03-retest-verify-examples.txt](evidence/2026-09-24-01/CL-03-retest-verify-examples.txt)
+
+#### CL-04 — The setup wizard never crashes without a terminal  [FAIL · low · **VERIFIED**]
+
+- Section: `cli`
+- Steps: tools/setup_wizard.py from the repo root with no .env and stdin closed
+- Expected: Finishes: a closed stdin is no answer
+- Observed: EOFError traceback at the first input() prompt. Found by the same probe on ReadyTrader-FOREX (its CL-01)
+- Evidence: [CL-04.txt](evidence/2026-09-24-01/CL-04.txt)
+- Fix: ask() wraps input(); EOF is no answer; the wizard says how to create .env later
+  - Files: `tools/setup_wizard.py`
+  - Commit: `03bdc44`
+  - Regression test: tests/test_setup_wizard.py
+- Retest 1 (2026-09-24T12:29:26+00:00): **PASS** — No .env and a closed stdin: the wizard finishes and prints its next steps; no traceback · evidence: [CL-04-retest.txt](evidence/2026-09-24-01/CL-04-retest.txt)
 
 #### DA-02 — Equity counts funds reserved by open limit orders  [FAIL · low · **VERIFIED**]
 
@@ -742,7 +858,7 @@
 - Blocked on: Alpaca paper-account keys (ALPACA_API_KEY/ALPACA_API_SECRET) with ALPACA_PAPER=true (the default): run PAPER_MODE=false LIVE_TRADING_ENABLED=true EXECUTION_APPROVAL_MODE=approve_each and approve one small order through the API
 - Evidence: [IN-02-brokerage-credentials.txt](evidence/2026-09-24-01/IN-02-brokerage-credentials.txt)
 
-### Passed checks (20)
+### Passed checks (21)
 
 | ID | Section | Check | Observed |
 |---|---|---|---|
@@ -766,10 +882,12 @@
 | CF-02 | config | No secrets in the tree or published history | 0 key-pattern matches over 18 commits; no .env/.pem tracked (tests use a dummy key 0x...01) |
 | REG-01 | regression | Regression sweep: all six journeys end to end on the final code, and the dashboard on its documented port | 20 tools; prices/bars/regime; paper fill at 337.02; 20% and 337% BUYs refused (Position size too large); proposal approved via API and filled; portfolio shows 7 AAPL; 400/422 for bad approvals; dashboard ok with no failed requests or console errors under the restricted CORS; backtest + stress test run; RSS works, keyed sources say not_configured; both demos exit 0; no stray files |
 | REG-02 | regression | CI's checks on the final code: ruff, pytest, bandit, dashboard lint and build | ruff clean; full pytest suite passes; bandit no issues; dashboard lint and production build succeed |
+| REG-03 | regression | Every CI step passes after the follow-up fixes | ruff clean, 385 tests pass, bandit clean, the dashboard installs, lints and builds |
 
 ### Run notes
 
 - 2026-09-24T08:40:27+00:00: IN-02 unblock path: with ALPACA_PAPER=true (now the default) the live order path can be exercised end to end against an Alpaca paper account; it needs ALPACA_API_KEY/ALPACA_API_SECRET for a paper account, which this environment does not have.
 - 2026-09-24T08:44:53+00:00: Adversarial pass (cold start, done in-session because a second reviewer agent could not be started): re-read the rendered log; every VERIFIED retest capture from this session was opened and shows the fixed behaviour; both brokerage place_order callers are behind live_order_refusal; remaining exact-'true' parses are opt-ins (LIVE_TRADING_ENABLED, IBKR_ENABLED, the unused MARKETDATA_FAIL_CLOSED). It found two more gaps, both fixed: DOC-06 (SECURITY.md had no reporting channel) and DOC-07 (Docker configs lost the paper ledger each session).
+- 2026-09-24T15:39:37+00:00: Follow-up after the ReadyTrader-FOREX UAT (same session): the probes and the independent review of the FOREX run found defects that also existed here; each was captured here first, fixed and retested: CF-09 (a malformed unapplied setting crashed the server), BE-29 (approval errors 404/403/409), CL-04 (wizard EOFError without a terminal), FE-07 (phone layout), BE-30 (exits sized as new exposure), BE-31 (large-trade verdict), BE-32 (proposal mode), BE-33 (WebSocket origin), FE-08 (blind approvals).
 
 ---
