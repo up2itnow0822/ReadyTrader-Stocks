@@ -1,0 +1,11 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/api_policy.sh
+# at 2026-09-24T08:01:36+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+health: {"status":"ok","mode":"live"}
+propose {"symbol":"MSFT","side":"sell","amount":1} -> "status": "pending_approval" 
+approve -> {"detail":"Brokerage alpaca is not configured with API keys."} HTTP 400
+propose {"symbol":"AAPL","side":"sell","amount":500} -> "status": "pending_approval" 
+approve -> {"detail":"Brokerage alpaca is not configured with API keys."} HTTP 400
+
+
+exit=0

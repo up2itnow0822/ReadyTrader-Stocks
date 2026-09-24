@@ -1,0 +1,11 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/deposit.sh
+# at 2026-09-24T08:16:24+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL deposit_paper_funds {"asset": "USD", "amount": 1000} -> { "data": { "message": "Deposited 1000.0 USD. New Balance: 1000.0" }, "ok": true }
+CALL deposit_paper_funds {"asset": "USD", "amount": -50000} -> { "error": { "code": "invalid_request", "data": {}, "message": "amount must be a positive number, got -50000.0" }, "ok": false }
+CALL deposit_paper_funds {"asset": "USD", "amount": 0} -> { "error": { "code": "invalid_request", "data": {}, "message": "amount must be a positive number, got 0.0" }, "ok": false }
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1} -> { "error": { "code": "risk_blocked", "data": { "market": { "as_of": "2026-09-23T04:00:00Z", "bars": 40, "detail": null, "drop_pct": 0.008035, "falling_knife": false, "last_close": 337.0199890136719, "on_data_error": "allow", "peak_close": 339.75, "required": false, "rule": { "min_drop": 0.15, "windo
+ledger USD balance: [('agent_zero', 'USD', 1000.0)]
+
+
+exit=0

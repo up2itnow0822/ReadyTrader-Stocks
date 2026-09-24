@@ -1,0 +1,9 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/order_type.sh
+# at 2026-09-24T08:06:25+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL place_stock_order {"symbol": "AAPL", "side": "buy", "amount": 1, "order_type": "stop"} -> { "error": { "code": "invalid_request", "data": {}, "message": "order_type must be 'market' or 'limit', got 'stop'" }, "ok": false }
+CALL place_stock_order {"symbol": "AAPL", "side": "buy", "amount": 1, "order_type": "limit"} -> { "error": { "code": "invalid_request", "data": {}, "message": "a limit order needs a positive price, got 0.0" }, "ok": false }
+CALL place_stock_order {"symbol": "AAPL", "side": "buy", "amount": 1, "order_type": "limit", "price": -5} -> { "error": { "code": "invalid_request", "data": {}, "message": "a limit order needs a positive price, got -5.0" }, "ok": false }
+
+
+exit=0
