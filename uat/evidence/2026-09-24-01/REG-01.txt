@@ -1,0 +1,44 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/reg_sweep.sh
+# at 2026-09-24T08:37:10+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+=== J1 install + connect: list tools
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, ge
+=== J2 research
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, get_market_regime, get_market_sentiment, get_multiple_prices, get_social_sentiment, get_stock_price, place_limit_order, place_market_order, place_stock_order, post_market_insight, reset_paper_wallet, run_backtest_simulation, run_synthetic_stress_test, start_brokerage_private_ws, validate_trade_risk
+CALL get_stock_price {"symbol": "AAPL"} -> { "data": { "ask": null, "average": null, "baseVolume": 31587800.0, "bid": null, "change": null, "close": 337.0199890136719, "datetime": "2026-09-24T08:37:16.006670", "high": 341.79998779296875, "info
+CALL fetch_ohlcv {"symbol": "AAPL", "timeframe": "1d", "limit": 2} -> { "data": { "history": [ { "close": 339.75, "high": 345.3399963378906, "low": 338.75, "open": 340.1400146484375, "timestamp": "2026-09-22T04:00:00Z", "volume": 40711800.0 }, { "close": 337.01998901367
+CALL get_market_regime {"symbol": "AAPL"} -> { "data": { "result": { "adx": 19.45, "atr_pct": 2.12, "direction": "SIDEWAYS", "regime": "VOLATILE_RANGING", "summary": "Market is VOLATILE_RANGING (SIDEWAYS). ADX: 19.5, Volatility: 2.1%" }, "symbol
+=== J3 paper: fund + market order
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, get_market_regime, get_market_sentiment, get_multiple_prices, get_social_sentiment, get_stock_price, place_limit_order, place_market_order, place_stock_order, post_market_insight, reset_paper_wallet, run_backtest_simulation, run_synthetic_stress_test, start_brokerage_private_ws, validate_trade_risk
+CALL deposit_paper_funds {"asset": "USD", "amount": 100000} -> { "data": { "message": "Deposited 100000.0 USD. New Balance: 100000.0" }, "ok": true }
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 5} -> { "data": { "result": "Paper Trade Executed: BUY 5.0 AAPL @ 337.0199890136719. Value: 1685.0999450683594 USD. Rationale: stock_order_paper", "venue": "paper" }, "ok": true }
+=== J4 unsafe BUY refused (oversized; validate_trade_risk and the order path)
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, get_market_regime, get_market_sentiment, get_multiple_prices, get_social_sentiment, get_stock_price, place_limit_order, place_market_order, place_stock_order, post_market_insight, reset_paper_wallet, run_backtest_simulation, run_synthetic_stress_test, start_brokerage_private_ws, validate_trade_risk
+CALL validate_trade_risk {"side": "buy", "symbol": "AAPL", "amount_usd": 20000, "portfolio_value": 100000} -> { "data": { "amount_usd": 20000.0, "market": { "as_of": "2026-09-23T04:00:00Z", "bars": 40, "detail": null, "drop_pct": 0.008035, "falling_knife": false, "last_close": 337.0199890136719, "on_data_error": "allow", "peak_close": 339.75, "required": false, "rule": { "min_drop": 0.15, "window_bars": 4 }, "status": "ok", "still_falling": false }, "result": { "allowed": false, "reason": "Position size too large (20.0%). Max allowed is 5%." }, "sentiment": { "hint": "This server does not score sentiment. Call get_social_sentiment(symbol) to read the posts, and pass your own reading as sentiment_score on [-1, +1] if you want the sentiment side of the Falling Knife rule to act. Left unset it is neutral (0.0) and that side cannot fire; the price side reads daily closes on every BUY regardless.", "posts_age_seconds": null, "posts_available": 0, "score": 0.0, "source": "unmeasured", "status": "not_measured" }, "side": "buy", "symbol": "AAPL" }, "ok": true }
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1000} -> { "error": { "code": "risk_blocked", "data": { "market": { "as_of": "2026-09-23T04:00:00Z", "bars": 40, "detail": null, "drop_pct": 0.008035, "falling_knife": false, "last_close": 337.0199890136719, "on_data_error": "allow", "peak_close": 339.75, "required": false, "rule": { "min_drop": 0.15, "window_bars": 4 }, "status": "ok", "still_falling": false }, "sentiment": { "hint": "This server does not score sentiment. Call get_social_sentiment(symbol) to read the posts, and pass your own reading as sentiment_score on [-1, +1] if you want the sentiment side of the Falling Knife rule to act. Left unset it is neutral (0.0) and that side cannot fire; the price side reads daily closes on every BUY regardless.", "posts_age_seconds": null, "posts_available": 0, "score": 0.0, "source": "unmeasured", "status": "not_measured" } }, "message": "Position size too large (337.0%). Max allowed is 5%." }, "ok": false }
+=== J5 approve_each: propose over MCP, approve through the API
+proposal: "status": "pending_approval"
+API pending: 462f83dcccca6d56883c0983
+API approve: {"ok":true,"result":"Paper Trade Executed: BUY 2.0 AAPL @ 337.0199890136719. Value: 674.0399780273438 USD. Rationale: api_approved"} HTTP 200
+API portfolio: {"balances":{"AAPL":7.0,"USD":97640.8600769043},"metrics":{"equity":100000.0,"daily_pnl_pct":0.0,"drawdown_pct":0.0,"max_drawdown_pct":0.0}}
+API unknown id: {"detail":"Unknown request_id"} HTTP 400
+API empty body: HTTP 422
+=== dashboard on its documented port (3000) against the API on 8000
+dashboard snap exit=0 (see REG-01-retest-dashboard-3000.json)
+ok True failed_requests [] console_errors [] assertions [('Paper Mode', True), ('AAPL', True)]
+=== J6 backtest + stress test
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, get_market_regime, get_market_sentiment, get_multiple_prices, get_social_sentiment, get_stock_price, place_limit_order, place_market_order, place_stock_order, post_market_insight, reset_paper_wallet, run_backtest_simulation, run_synthetic_stress_test, start_brokerage_private_ws, validate_trade_risk
+CALL run_backtest_simulation {"strategy_code": "def on_candle(close, rsi, state):\n    return \"hold\"\n", "symbol": "AAPL", "timeframe": "1d"} -> { "data": { "result": { "final_value": 10000.0, "initial_capital": 10000.0, "pnl": 0.0, "pnl_percent": 0.0, "symbol": "AAPL", "total_trades": 0, "trades_log": [
+CALL run_synthetic_stress_test {"strategy_code": "def on_candle(close, rsi, state):\n    return \"hold\"\n", "config_json": "{\"scenarios\": 5, \"master_seed\": 1}"} -> { "data": { "result": { "artifacts": { "scenario_metrics_csv": "seed,final_return,max_drawdown,trades\n1,0.0,0.0,0\n2,0.0,0.0,0\n3,0.0,0.0,0\n4,0.0,0.0,0\n5,0.0
+=== intelligence without keys (IN-03/IN-04)
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, get_market_regime, get_market_sentiment, get_multiple_prices, get_social_sentiment, get_stock_price, place_limit_order, place_market_order, place_stock_order, post_market_insight, reset_paper_wallet, run_backtest_simulation, run_synthetic_stress_test, start_brokerage_private_ws, validate_trade_risk
+CALL fetch_rss_news {"symbol": ""} -> { "data": { "news": "Market News (Free RSS):\n1. Apple Just Misses $5 Trillion Market Cap. The Milestone Is Likely Coming Soon. (Yahoo Finance)\n2. Stocks Settl
+CALL get_market_news {"symbol": "AAPL"} -> { "error": { "code": "not_configured", "data": { "symbol": "AAPL" }, "message": "Market News: ALPHAVANTAGE_API_KEY missing. News unavailable." }, "ok": false }
+CALL get_social_sentiment {"symbol": "AAPL"} -> { "error": { "code": "not_configured", "data": { "symbol": "AAPL" }, "message": "Social Sentiment Unavailable for AAPL: No sentiment APIs configured.\nTo enable
+=== demos and CLI
+examples/paper_quick_demo.py exit=0
+examples/simulation_demo.py exit=0
+files written outside the data dir: none
+
+
+exit=0
