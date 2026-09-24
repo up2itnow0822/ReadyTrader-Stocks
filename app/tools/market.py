@@ -17,42 +17,46 @@ def _json_err(code: str, message: str, data: Dict[str, Any] | None = None) -> st
 
 
 def get_stock_price(symbol: str) -> str:
-    """Fetch the latest real-time stock price (bid/ask/last)."""
+    """Fetch the latest stock price (`last`, with the day's open/high/low/volume) from yfinance."""
     try:
-        data = global_container.marketdata_bus.get_ticker(symbol)
+        data = global_container.exchange_provider.fetch_ticker(symbol)
         return _json_ok(data)
     except Exception as e:
         return _json_err("market_data_error", str(e), {"symbol": symbol})
 
 
 def get_multiple_prices(symbols: List[str]) -> str:
-    """Fetch real-time prices for multiple stock tickers simultaneously."""
+    """Fetch the latest prices for several stock tickers."""
     results = {}
     for sym in symbols:
         try:
-            results[sym] = global_container.marketdata_bus.get_ticker(sym)
-        except Exception:
-            results[sym] = {"error": "could not fetch price"}
+            results[sym] = global_container.exchange_provider.fetch_ticker(sym)
+        except Exception as e:
+            results[sym] = {"error": f"could not fetch price: {str(e)[:160]}"}
     return _json_ok({"prices": results})
+
+
+def _iso(ts: Any) -> str:
+    """Bar time as ISO-8601 UTC (the backtest engine's timestamps are naive UTC)."""
+    if hasattr(ts, "isoformat"):
+        text = ts.isoformat()
+        return text if getattr(ts, "tzinfo", None) else f"{text}Z"
+    return str(ts)
 
 
 def fetch_ohlcv(symbol: str, timeframe: str = '1d', limit: int = 100) -> str:
     """Fetch historical OHLCV candlestick data for technical analysis."""
     try:
         df = global_container.backtest_engine.fetch_ohlcv(symbol, timeframe, limit)
-        data = df.reset_index().to_dict(orient="records")
-        # Convert timestamps to string
+        data = df.to_dict(orient="records")
         for d in data:
-            if 'index' in d:
-                d['timestamp'] = str(d.pop('index'))
-            elif 'Date' in d:
-                d['timestamp'] = str(d.pop('Date'))
+            d['timestamp'] = _iso(d.get('timestamp'))
         return _json_ok({"symbol": symbol, "timeframe": timeframe, "history": data})
     except Exception as e:
         return _json_err("history_error", str(e), {"symbol": symbol})
 
 
 def register_market_tools(mcp: FastMCP):
-    mcp.add_tool(get_stock_price)
-    mcp.add_tool(get_multiple_prices)
-    mcp.add_tool(fetch_ohlcv)
+    mcp.tool(get_stock_price)
+    mcp.tool(get_multiple_prices)
+    mcp.tool(fetch_ohlcv)
