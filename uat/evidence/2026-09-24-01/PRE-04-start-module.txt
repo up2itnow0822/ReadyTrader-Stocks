@@ -1,0 +1,14 @@
+$ bash -c '/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python -c "import mcp,fastmcp;print(\"mcp\",mcp.__version__ if hasattr(mcp,\"__version__\") else \"?\",\"fastmcp\",fastmcp.__version__)" 2>/dev/null; timeout 30 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python -m app.main </dev/null 2>&1 | tail -6; echo exit=${PIPESTATUS[0]}'
+# at 2026-09-24T07:11:05+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+mcp ? fastmcp 2.14.1
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/fastmcp/server/server.py", line 1892, in add_tool
+    self._tool_manager.add_tool(tool)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/fastmcp/tools/tool_manager.py", line 109, in add_tool
+    existing = self._tools.get(tool.key)
+                               ^^^^^^^^
+AttributeError: 'function' object has no attribute 'key'
+exit=1
+
+
+exit=0

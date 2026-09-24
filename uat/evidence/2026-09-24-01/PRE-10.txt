@@ -1,0 +1,14 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/cwd.sh
+# at 2026-09-24T08:24:41+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, get_market_regime, get_market_sentiment, get_multiple_prices, get_social_sentiment, get_stock_price, place_limit_order, place_market_order, place_stock_order, post_market_insight, reset_paper_wallet, run_backtest_simulation, run_synthetic_stress_test, start_brokerage_private_ws, validate_trade_risk
+CALL deposit_paper_funds {"asset": "USD", "amount": 10000} -> { "data": { "message": "Deposited 10000.0 USD. New Balance: 10000.0" }, "ok": true }
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1} -> { "data": { "result": "Paper Trade Executed: BUY 1.0 AAPL @ 337.0199890136719. Value: 337.0199890136719 USD. Rationale: stock_order_paper", "venue": "paper" }, "ok": true }
+files written under the client's working directory:
+./data/compliance_audit.log
+./data/paper.db
+./data/strategies.db
+./data/insights.db
+
+
+exit=0
