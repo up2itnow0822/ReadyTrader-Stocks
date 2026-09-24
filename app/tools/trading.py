@@ -89,7 +89,8 @@ def _market_context(symbol: str, side: str) -> Dict[str, Any]:
         reading = market_guard.MarketReading(status=market_guard.STATUS_DISABLED, detail="MARKET_GUARD_ENABLED=false")
     else:
         try:
-            reading = market_guard.assess(_fetch_daily_bars(symbol))
+            session = market_guard.Session(tz=settings.MARKET_TIMEZONE, open_hhmm=settings.MARKET_HOURS_START)
+            reading = market_guard.assess(_fetch_daily_bars(symbol), session=session)
         except Exception as e:
             reading = market_guard.MarketReading(
                 status=market_guard.STATUS_UNAVAILABLE, detail=f"{type(e).__name__}: {str(e)[:160]}"
@@ -167,12 +168,12 @@ def validate_trade_risk(
         market = _market_context(symbol, side)
         daily_loss = 0.0
         drawdown = 0.0
-        
+
         if settings.PAPER_MODE:
              metrics = global_container.paper_engine.get_risk_metrics("agent_zero")
              daily_loss = metrics.get('daily_pnl_pct', 0.0)
              drawdown = metrics.get('drawdown_pct', 0.0)
-        
+
         result = global_container.risk_guardian.validate_trade(
             side, symbol, amount_usd, portfolio_value, sentiment["score"], daily_loss, drawdown, market=market
         )
@@ -195,14 +196,55 @@ def start_brokerage_private_ws(brokerage: str) -> str:
     return _json_ok({"mode": "ws", "status": "connected", "brokerage": brokerage})
 
 
+def pre_trade_check(
+    symbol: str, side: str, amount: float, price: float = 0.0, sentiment_score: float | None = None
+) -> Dict[str, Any]:
+    """
+    The Risk Guardian check an order must pass, with fresh market data: {allowed, reason,
+    sentiment, market}. place_stock_order runs it before anything is proposed or executed, and
+    the approval API (app/api_server.py) runs it again at execution time, because a proposal can
+    wait up to its expiry while the market moves.
+    """
+    portfolio_value = 100000.0
+    daily_loss = 0.0
+    drawdown = 0.0
+    sentiment = _sentiment_context(symbol, sentiment_score)
+    market = _market_context(symbol, side)
+    if settings.PAPER_MODE:
+        metrics = global_container.paper_engine.get_risk_metrics("agent_zero")
+        portfolio_value = metrics.get('equity', 100000.0)
+        # Previously never passed, so the daily-loss and drawdown rules were inert on
+        # every real order even though validate_trade_risk applied them.
+        daily_loss = metrics.get('daily_pnl_pct', 0.0)
+        drawdown = metrics.get('drawdown_pct', 0.0)
+
+    est_px = price if price > 0 else 1.0
+    risk_result = global_container.risk_guardian.validate_trade(
+        side=side,
+        symbol=symbol,
+        amount_usd=amount * est_px,
+        portfolio_value=portfolio_value,
+        sentiment_score=sentiment["score"],
+        daily_loss_pct=daily_loss,
+        current_drawdown_pct=drawdown,
+        market=market,
+    )
+    return {
+        "allowed": bool(risk_result.get("allowed", False)),
+        "reason": risk_result.get("reason", "Risk policy violation"),
+        "sentiment": sentiment,
+        "market": market,
+    }
+
+
 def place_stock_order(
-    symbol: str, 
-    side: str, 
-    amount: float, 
-    price: float = 0.0, 
-    order_type: str = "market", 
-    exchange: str = "alpaca", 
-    rationale: str = "", 
+    symbol: str,
+    side: str,
+    amount: float,
+    price: float = 0.0,
+    order_type: str = "market",
+    exchange: str = "alpaca",
+    rationale: str = "",
     audit_context: str = "",
     sentiment_score: float | None = None
 ) -> str:
@@ -210,47 +252,25 @@ def place_stock_order(
     global_compliance_ledger.record_event("trade_start", {
         "symbol": symbol, "side": side, "amount": amount, "rationale": rationale, "audit_context": audit_context
     })
-    
+
     # Risk Guardian Check
     try:
-        portfolio_value = 100000.0
-        daily_loss = 0.0
-        drawdown = 0.0
-        sentiment = _sentiment_context(symbol, sentiment_score)
-        market = _market_context(symbol, side)
-        if settings.PAPER_MODE:
-             metrics = global_container.paper_engine.get_risk_metrics("agent_zero")
-             portfolio_value = metrics.get('equity', 100000.0)
-             # Previously never passed, so the daily-loss and drawdown rules were inert on
-             # every real order even though validate_trade_risk applied them.
-             daily_loss = metrics.get('daily_pnl_pct', 0.0)
-             drawdown = metrics.get('drawdown_pct', 0.0)
-
-        est_px = price if price > 0 else 1.0
-        risk_result = global_container.risk_guardian.validate_trade(
-            side=side,
-            symbol=symbol,
-            amount_usd=amount * est_px,
-            portfolio_value=portfolio_value,
-            sentiment_score=sentiment["score"],
-            daily_loss_pct=daily_loss,
-            current_drawdown_pct=drawdown,
-            market=market,
-        )
-
-        if not risk_result.get("allowed", False):
+        check = pre_trade_check(symbol, side, amount, price, sentiment_score)
+        if not check["allowed"]:
             return _json_err(
                 "risk_blocked",
-                risk_result.get("reason", "Risk policy violation"),
-                {"sentiment": sentiment, "market": market},
+                check["reason"],
+                {"sentiment": check["sentiment"], "market": check["market"]},
             )
-            
+
         if settings.EXECUTION_APPROVAL_MODE == "approve_each":
             proposal = global_container.execution_store.create(
                 kind="stock_order",
                 payload={
                     "symbol": symbol, "side": side, "amount": amount, "price": price,
-                    "order_type": order_type, "rationale": rationale, "exchange": exchange
+                    "order_type": order_type, "rationale": rationale, "exchange": exchange,
+                    # Kept so the approval path can re-run the same check at execution time.
+                    "sentiment_score": sentiment_score,
                 }
             )
             return _json_ok({
@@ -259,7 +279,7 @@ def place_stock_order(
                 "confirm_token": proposal.confirm_token,
                 "order_details": proposal.payload
             })
-            
+
     except Exception as e:
         return _json_err("risk_validation_error", str(e))
 
@@ -270,7 +290,7 @@ def place_stock_order(
             price=price if price > 0 else 0.0, rationale=rationale or "stock_order_paper"
         )
         return _json_ok({"venue": "paper", "result": res})
-    
+
     try:
         global_container.policy_engine.validate_brokerage_order(
             exchange_id=exchange, symbol=symbol, side=side, amount=amount, market_type="spot"
@@ -278,7 +298,7 @@ def place_stock_order(
         ex = exchange.lower()
         if ex not in global_container.brokerages:
             return _json_err("brokerage_not_supported", f"Brokerage {exchange} not found.")
-            
+
         brokerage = global_container.brokerages[ex]
         res = brokerage.place_order(symbol=symbol, side=side, qty=amount, order_type=order_type, price=price if price > 0 else None)
         return _json_ok({"venue": ex, "result": res})

@@ -33,11 +33,23 @@ spike high would otherwise look like a collapse.
 - **Response**: `validate_trade_risk` returns a `market` block — `status`, `falling_knife`,
   `drop_pct`, `peak_close`, `last_close`, `still_falling`, `bars`, `as_of`, `detail`, the `rule`
   thresholds and the data-error policy. A blocked order returns the same block in its error data.
+- **Approvals**: with `EXECUTION_APPROVAL_MODE=approve_each`, an order is checked when it is
+  proposed and checked again, with fresh bars, when `/api/approve-trade` approves it: a proposal
+  can wait until it expires while the market moves. An approval the check refuses answers
+  `409` with `{"code": "risk_blocked", "reason", "market"}` and nothing executes.
 
 ### When the bars cannot be read
 
-`status` is `ok`, `insufficient_data` (fewer than 4 usable bars), `stale` (latest bar more than
-5 days old), `unavailable` (the provider raised), `disabled`, or `not_checked` (a SELL).
+`status` is `ok`, `insufficient_data` (fewer than 4 usable bars), `stale`, `unavailable` (the
+provider raised), `disabled`, or `not_checked` (a SELL).
+
+`stale` means either the latest bar is more than 5 days old, or today's session has opened and
+the provider has no bar for it yet. The session is read from `MARKET_TIMEZONE` and
+`MARKET_HOURS_START` (US/Eastern, 09:30), Monday to Friday; without today's bar the rule would be
+reading yesterday's closes while missing a collapse happening now. On an exchange holiday that
+reads as stale all day, which is the safe answer: the market is closed, so a BUY would fill at the
+next open, on a price this check has not seen. Bars are matched to dates in `MARKET_TIMEZONE`, so a
+listing on an exchange in another time zone can read as stale during US hours.
 
 | `MARKET_GUARD_ON_DATA_ERROR` | A BUY whose check could not run |
 | :--- | :--- |
@@ -53,9 +65,10 @@ A SELL is never blocked for missing data.
 
 | Variable | Default | Effect |
 | :--- | :--- | :--- |
-| `MARKET_GUARD_ENABLED` | `true` | `false` turns the price check off; the `market` block then reports `disabled` |
+| `MARKET_GUARD_ENABLED` | `true` | `false` (or `0`, `no`, `off`) turns the price check off; the `market` block then reports `disabled`. Any other value, including a typo, leaves it on |
 | `MARKET_GUARD_ON_DATA_ERROR` | unset | see the table above |
 | `OHLCV_CACHE_TTL_SEC` | `60` | cache lifetime for the daily bars |
+| `MARKET_TIMEZONE`, `MARKET_HOURS_START` | `US/Eastern`, `09:30` | when today's session opens, for the stale check above |
 
 `CIRCUIT_BREAKER_PCT` is not read by any check; it predates this rule and is kept only so existing
 configurations still load.
