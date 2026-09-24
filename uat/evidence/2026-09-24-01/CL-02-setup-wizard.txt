@@ -1,0 +1,27 @@
+$ bash -c 'printf "n\nn\nn\nn\n" | timeout 60 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python tools/setup_wizard.py 2>&1 | tail -20; echo exit=${PIPESTATUS[1]}'
+# at 2026-09-24T07:40:28+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+  [91m[✗][0m ccxt (Missing)
+  [91m[✗][0m web3 (Missing)
+  [92m[✓][0m feedparser
+  [92m[✓][0m requests
+
+[93mMissing dependencies detected.[0m
+Would you like to install them now? (y/n): 
+Checking Network Connectivity...
+  [93m[?][0m Binance API returned status 451.
+  [92m[✓][0m CoinDesk RSS reachable.
+  [92m[✓][0m Fear & Greed Index reachable.
+
+Checking Critical Keys in .env...
+
+[1mSetup Scan Complete![0m
+Next steps:
+1. Open [1m.env[0m and configure your SIGNER_TYPE and exchange keys.
+2. Read [1mdocs/SENTIMENT.md[0m for intelligence feed setup.
+3. Run [1mfastmcp run server.py[0m to start the MCP server.
+
+exit=0
+
+
+exit=0

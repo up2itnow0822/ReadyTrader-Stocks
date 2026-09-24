@@ -1,0 +1,16 @@
+$ bash -c 'timeout 120 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python examples/verify_stocks.py 2>&1 | grep -v -i "warn\|crumb" | tail -4; echo exit=${PIPESTATUS[0]}; env -u ALPACA_API_KEY -u ALPACA_API_SECRET timeout 120 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python examples/verify_live_strategy.py 2>&1 | grep -v -i "warn\|crumb" | tail -4; echo exit=${PIPESTATUS[0]}'
+# at 2026-09-24T07:42:11+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+--- Verifying ReadyTrader-Stocks ---
+Market data: AAPL last = 337.02
+Paper Trade Executed: BUY 10 AAPL @ 337.0199890136719. Value: 3370.1998901367188 USD. Rationale: verify_stocks
+SUCCESS: market data and paper execution work.
+exit=0
+--- Verifying live-brokerage wiring and a strategy ---
+Alpaca brokerage available: False (False unless ALPACA_API_KEY/SECRET are set)
+SMA strategy on AAPL: {'signal': 0, 'reason': 'no_crossover', 'short_val': np.float64(337.7760009765625), 'long_val': np.float64(334.4549987792969), 'price': np.float64(337.0199890136719)}
+SUCCESS
+exit=0
+
+
+exit=0
