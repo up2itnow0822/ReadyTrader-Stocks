@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { API_URL } from '@/lib/api';
 
 export type PendingApproval = {
     request_id: string;
@@ -15,8 +16,7 @@ export function usePendingApprovals() {
 
     const fetchApprovals = useCallback(async () => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const res = await fetch(`${apiUrl}/api/pending-approvals`);
+            const res = await fetch(`${API_URL}/api/pending-approvals`);
             const data = await res.json();
             setApprovals(data.pending || []);
         } catch (err) {
@@ -27,8 +27,7 @@ export function usePendingApprovals() {
     }, []);
 
     const handleApproval = async (requestId: string, token: string, approve: boolean) => {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-        const res = await fetch(`${apiUrl}/api/approve-trade`, {
+        const res = await fetch(`${API_URL}/api/approve-trade`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
