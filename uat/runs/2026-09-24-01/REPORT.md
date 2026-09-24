@@ -1,6 +1,6 @@
 # UAT run 2026-09-24-01 — ReadyTrader-Stocks: CLEAN with BLOCKED items
 
-72 checks · 20 pass · 50 fail (50 fixed & verified, 0 open, 0 fixed-unverified, 0 regressed) · 2 blocked
+82 checks · 21 pass · 59 fail (59 fixed & verified, 0 open, 0 fixed-unverified, 0 regressed) · 2 blocked
 
 Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tools, paper trading, risk guardian, api_server approvals, docs/README/configs, CI, frontend build. Out: live brokerage orders (no credentials; live trading is a hard gate), Docker (no daemon in sandbox)
 
@@ -17,6 +17,8 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 - **high** BE-19 — approve_each: a proposal made by the MCP server can be approved through the API → EXECUTION_SESSION_ID shares the proposal namespace across processes (opt-in) (`3f41a5a`) · **VERIFIED**
 - **high** BE-21 — The order path sizes trades against the real account → portfolio value from the paper engine / brokerage account; BUY fails closed without it (`880bfc4`) · **VERIFIED**
 - **high** BE-23 — approve_each + live: an approved proposal still passes the live policy (ALLOW_TICKERS, MAX_ORDER_AMOUNT) → live_order_refusal (switches + ALLOW_*/MAX_ORDER_AMOUNT policy) runs when a live order is proposed and again at execution, including /api/approve-trade (`0beffae`) · **VERIFIED**
+- **high** BE-30 — Selling out of a position is never sized as new exposure → pre_trade_check sizes only the exposure an order adds (paper ledger / brokerage list_positions); risk rules refuse only orders that add exposure (`5fb2edf`) · **VERIFIED**
+- **high** BE-32 — A proposal executes in the mode it was proposed in → Proposals record paper_mode; the approval API refuses the other mode (409 mode_mismatch) (`5fb2edf`) · **VERIFIED**
 - **high** CF-03 — TRADING_HALTED kill switch halts live orders for any 'on' value → TRADING_HALTED halts on any value except empty/false/0/no/off (common/switches.kill_switch_on); PAPER_MODE stays on unless explicitly off, read the same way by config, the Alpaca client and the ws stream (`1f542bc`) · **VERIFIED**
 - **high** CF-04 — EXECUTION_APPROVAL_MODE fails closed: a misspelt or commented value still requires approval → EXECUTION_APPROVAL_MODE: any value other than auto requires approval (common/switches.approval_mode); env.example has no inline comments (docker --env-file keeps them) (`1f542bc`) · **VERIFIED**
 - **high** CF-05 — An unparseable MAX_ORDER_AMOUNT fails closed → MAX_ORDER_AMOUNT that is not a finite number raises invalid_policy_config; empty or unset means no limit (`0beffae`) · **VERIFIED**
@@ -45,14 +47,21 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 - **medium** DOC-06 — SECURITY.md tells a reporter where to send a vulnerability → SECURITY.md points at GitHub private vulnerability reporting (security/advisories/new) and states how keys and the approval API are handled (`f9938df`) · **VERIFIED**
 - **medium** DOC-07 — The documented Docker MCP configs keep the paper ledger between sessions → configs and README Docker examples mount readytrader-stocks-data:/app/data (`f9938df`) · **VERIFIED**
 - **medium** FE-05 — Mode indicator, approval control and API URL → ModePill reads /api/health; Approve prompts for the confirm_token; API_URL module; READYTRADER logo (`352bd67`) · **VERIFIED**
+- **medium** FE-07 — The dashboard is readable at phone width (390x844) → Media query below 900 px: static top sidebar, single-column grid (`fb843a5`) · **VERIFIED**
+- **medium** FE-08 — The operator can see what a proposal is before approving it, and can reject it → Pending list carries each order's summary (no token); the Guard Rail shows it with Approve and Reject (`5fb2edf`) · **VERIFIED**
 - **medium** IN-04 — get_market_news, fetch_rss_news and get_market_sentiment → news tools call their core functions with matching arguments; refused Fear & Greed reads as unavailable (`abc58c9`) · **VERIFIED**
 - **medium** PRE-01 — README local install (pip install -r requirements-dev.txt) on the default python3 → README states Python 3.12+ and shows the python3.12 venv steps (`845e972`) · **VERIFIED**
 - **medium** PRE-08 — Documented demo: python examples/stress_test_demo.py → README and paper demo point at examples/simulation_demo.py (`845e972`) · **VERIFIED**
 - **medium** PRE-10 — Run as the README's 'Without Docker' config does (another working directory): the paper ledger stays with the install → common/paths.data_path anchors every default data file to <repo>/data (READYTRADER_DATA_DIR overrides); ensure_parent creates folders (`96979b4`) · **VERIFIED**
 - **low** BE-27 — deposit_paper_funds accepts only a positive amount → deposit_paper_funds validates amount (positive, finite) and asset (non-empty) (`70e5a3c`) · **VERIFIED**
+- **low** BE-29 — Approval API error paths: bad bodies 422, unknown ids 404, wrong token 403, no internals → approve_trade maps the store's refusal to 404/403/409; docs updated (`d9d65b6`) · **VERIFIED**
+- **low** BE-31 — validate_trade_risk does not promise a confirmation the order path never asks for → The over-$5,000 verdict is advisory and points at approve_each (`5fb2edf`) · **VERIFIED**
+- **low** BE-33 — The API's WebSocket answers only the dashboard's origins → /ws closes a browser connection whose Origin is not in API_CORS_ORIGINS (`5fb2edf`) · **VERIFIED**
 - **low** CF-01 — env.example lists the variables the code reads → env.example lists every variable read (prefixed aliases noted), grouped and commented; DEBUG removed (`0eb9304`) · **VERIFIED**
 - **low** CF-08 — A .env copied from env.example holds no placeholder credentials → placeholder credentials in env.example commented out (`fd75c1c`) · **VERIFIED**
+- **low** CF-09 — A malformed setting that nothing applies does not stop the server → _unapplied_number() parses the two unapplied settings leniently (`491e203`) · **VERIFIED**
 - **low** CL-03 — examples/verify_stocks.py and verify_live_strategy.py → verify scripts use current APIs and a temporary paper DB; SMA strategy registers pandas_ta (`615ac72`) · **VERIFIED**
+- **low** CL-04 — The setup wizard never crashes without a terminal → ask() wraps input(); EOF is no answer; the wizard says how to create .env later (`03bdc44`) · **VERIFIED**
 - **low** DA-02 — Equity counts funds reserved by open limit orders → get_portfolio_value_usd adds funds reserved by open limit orders (`c978713`) · **VERIFIED**
 - **low** FE-04 — Navigation links lead to pages → remove nav links without pages (`352bd67`) · **VERIFIED**
 - **low** ME-02 — Insight fields are validated (signal bullish/bearish/neutral, confidence 0..1) → post_market_insight validates signal, confidence and ttl (`06c41c0`) · **VERIFIED**
@@ -67,13 +76,13 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 | Section | Checks | Status |
 |---|---|---|
 | preflight | 10 | covered |
-| backend | 26 | covered |
+| backend | 31 | covered |
 | data | 3 | covered |
 | memory | 2 | covered |
-| frontend | 6 | covered |
+| frontend | 8 | covered |
 | integrations | 5 | covered |
-| cli | 3 | covered |
-| config | 8 | covered |
+| cli | 4 | covered |
+| config | 9 | covered |
 | docs | 7 | covered |
 | journeys | 6 | recorded |
 
@@ -82,4 +91,4 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 - Branch `uat/2026-09-24-stocks` has a remote (`origin`) but no upstream — it has not been pushed.
 - Base: `main@e389057`
 - DOX: root AGENTS.md indexes `uat/AGENTS.md`
-- Log: `uat/UAT-LOG.md` · evidence: `uat/evidence/2026-09-24-01/` (0.33 MB)
+- Log: `uat/UAT-LOG.md` · evidence: `uat/evidence/2026-09-24-01/` (0.54 MB)

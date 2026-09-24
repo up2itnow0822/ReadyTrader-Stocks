@@ -1,0 +1,23 @@
+{
+  "url": "http://localhost:3001/",
+  "final_url": "http://localhost:3001/",
+  "title": "ReadyTrader | Institutional AI Stock Trading",
+  "started_at": "2026-09-24T15:39:23+0000",
+  "viewport": "1280x800",
+  "actions": [],
+  "console_errors": [
+    "WebSocket connection to 'ws://localhost:8000/ws' failed: Error during WebSocket handshake: Unexpected response code: 403",
+    "WS Error: Event"
+  ],
+  "console_warnings": [],
+  "page_errors": [],
+  "failed_requests": [],
+  "aborted_requests": [],
+  "http_errors": [],
+  "assertions": [],
+  "load_ok": true,
+  "ok": false,
+  "reason": [
+    "2 console error(s)"
+  ]
+}
