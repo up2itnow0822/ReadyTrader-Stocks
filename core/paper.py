@@ -3,11 +3,13 @@ import sqlite3
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
+from common.paths import data_path, ensure_parent
+
 
 class PaperTradingEngine:
     def __init__(self, db_path: Optional[str] = None):
-        self.db_path = db_path or os.getenv("READYTRADER_PAPER_DB_PATH", os.getenv("PAPER_DB_PATH", "data/paper.db"))
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        self.db_path = db_path or os.getenv("READYTRADER_PAPER_DB_PATH", os.getenv("PAPER_DB_PATH", data_path("paper.db")))
+        ensure_parent(self.db_path)
         self._init_db()
         
     def _init_db(self):
@@ -113,7 +115,23 @@ class PaperTradingEngine:
             if px is None:
                 continue
             total += float(amount) * float(px)
+        # Funds reserved by open limit orders are still the user's: a BUY reserved its cost in the
+        # quote asset, a SELL its shares.
+        for side, symbol, amount, reserved in self._open_orders(user_id):
+            base, quote = self._parse_symbol(symbol)
+            asset, qty = (quote, reserved) if side == "buy" else (base, amount)
+            px = self._get_asset_price_usd(asset)
+            if px is not None and qty:
+                total += float(qty) * float(px)
         return float(total)
+
+    def _open_orders(self, user_id: str) -> List[tuple]:
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute("SELECT side, symbol, amount, total_value FROM orders WHERE user_id=? AND status='open'", (user_id,))
+        rows = c.fetchall()
+        conn.close()
+        return rows
 
     def _snapshot_equity(self, user_id: str) -> None:
         equity = self.get_portfolio_value_usd(user_id)
@@ -134,7 +152,19 @@ class PaperTradingEngine:
         conn.close()
         return row[0] if row else 0.0
         
-    def deposit(self, user_id: str, asset: str, amount: float) -> str:
+    def get_balances(self, user_id: str) -> Dict[str, float]:
+        """Every non-zero balance for the user, by asset (the API's portfolio view)."""
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute("SELECT asset, amount FROM balances WHERE user_id=? AND amount != 0 ORDER BY asset", (user_id,))
+        rows = c.fetchall()
+        conn.close()
+        return {str(asset): float(amount) for asset, amount in rows}
+
+    def deposit(self, user_id: str, asset: str, amount: float, snapshot: bool = True) -> str:
+        """Adjust a balance. Trades pass snapshot=False and record equity once, after both legs:
+        a snapshot between the legs saw the cash leave before the shares arrived (or the reverse)
+        and recorded a drawdown that never happened."""
         current = self.get_balance(user_id, asset)
         new_balance = current + amount
         
@@ -144,7 +174,8 @@ class PaperTradingEngine:
                   (user_id, asset, new_balance))
         conn.commit()
         conn.close()
-        self._snapshot_equity(user_id)
+        if snapshot:
+            self._snapshot_equity(user_id)
         return f"Deposited {amount} {asset}. New Balance: {new_balance}"
 
     def reset_wallet(self, user_id: str) -> str:
@@ -185,14 +216,14 @@ class PaperTradingEngine:
             if balance < total_value:
                 return f"Insufficient fund. Have {balance} {quote}, need {total_value}"
             # Lock funds (deduct now)
-            self.deposit(user_id, quote, -total_value)
+            self.deposit(user_id, quote, -total_value, snapshot=False)
             
         elif side == 'sell':
             balance = self.get_balance(user_id, base)
             if balance < amount:
                 return f"Insufficient fund. Have {balance} {base}, need {amount}"
             # Lock funds
-            self.deposit(user_id, base, -amount)
+            self.deposit(user_id, base, -amount, snapshot=False)
             
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
@@ -231,15 +262,18 @@ class PaperTradingEngine:
             if side == 'buy' and current_price <= price:
                 fill = True
                 # Give user the Base asset (Quote was deducted at placement)
-                self.deposit(uid, base, amt)
+                self.deposit(uid, base, amt, snapshot=False)
                 
             elif side == 'sell' and current_price >= price:
                 fill = True
                 # Give user the Quote asset (Base was deducted at placement)
-                self.deposit(uid, quote, val) # val was amt * limit_price
+                self.deposit(uid, quote, val, snapshot=False) # val was amt * limit_price
                 
             if fill:
                 c.execute("UPDATE orders SET status='filled' WHERE id=?", (oid,))
+                # Commit before the helpers below open their own connections to write: an open
+                # write transaction here made them fail with "database is locked".
+                conn.commit()
                 filled_msgs.append(f"Order #{oid} FILLED: {side.upper()} {amt} {symbol} @ {price}")
                 # Update derived price cache from the fill price (best available for metrics)
                 self._set_asset_price_usd(quote, 1.0 if quote.upper() in {"USDT", "USDC", "DAI", "USD"} else 1.0)
@@ -283,8 +317,8 @@ class PaperTradingEngine:
                 return f"Insufficient fund. Have {balance} {quote}, need {total_value}"
             
             # Update balances
-            self.deposit(user_id, quote, -total_value)
-            self.deposit(user_id, base, amount)
+            self.deposit(user_id, quote, -total_value, snapshot=False)
+            self.deposit(user_id, base, amount, snapshot=False)
             
         elif side == 'sell':
             # Need base asset (BTC)
@@ -293,8 +327,8 @@ class PaperTradingEngine:
                 return f"Insufficient fund. Have {balance} {base}, need {amount}"
             
             # Update balances
-            self.deposit(user_id, base, -amount)
-            self.deposit(user_id, quote, total_value)
+            self.deposit(user_id, base, -amount, snapshot=False)
+            self.deposit(user_id, quote, total_value, snapshot=False)
             
         # Log order
         conn = sqlite3.connect(self.db_path)
@@ -335,7 +369,10 @@ class PaperTradingEngine:
         if not rows:
             return {"daily_pnl_pct": 0.0, "drawdown_pct": 0.0}
 
-        # Compute drawdown (fraction, e.g. 0.10 for 10%)
+        # Drawdown (fraction, e.g. 0.10 for 10%): `drawdown_pct` is the CURRENT fall from the peak,
+        # which is what the Risk Guardian's drawdown rule is given; the deepest fall on record is
+        # `max_drawdown_pct`. Reporting the historical maximum as current blocked every BUY
+        # forever after one dip, however fully the account had recovered.
         peak = float(rows[0][1])
         trough_drawdown = 0.0
         for _, eq in rows:
@@ -346,6 +383,8 @@ class PaperTradingEngine:
                 dd = (peak - eqv) / peak
                 if dd > trough_drawdown:
                     trough_drawdown = dd
+        latest = float(rows[-1][1])
+        current_drawdown = (peak - latest) / peak if peak > 0 else 0.0
 
         # Daily PnL%: compare last snapshot vs first snapshot of current UTC day
         today = self._now_iso()[:10]  # YYYY-MM-DD
@@ -359,4 +398,8 @@ class PaperTradingEngine:
         if start_equity > 0:
             daily_pct = (end_equity - start_equity) / start_equity
 
-        return {"daily_pnl_pct": float(daily_pct), "drawdown_pct": float(trough_drawdown)}
+        return {
+            "daily_pnl_pct": float(daily_pct),
+            "drawdown_pct": float(current_drawdown),
+            "max_drawdown_pct": float(trough_drawdown),
+        }
