@@ -3,6 +3,24 @@
 This project follows a lightweight changelog format.
 
 ### Unreleased
+
+#### Release UAT (every item was found by running the product, fixed, and retested; see `uat/`)
+- **The server starts**: it could not start at all. Tools were registered with an API FastMCP no longer has, `mcp` 2.x (which dropped a module FastMCP imports) was installed by default, and `python app/main.py` failed on imports. The `mcp` SDK is pinned below 2 and both servers run as files, the way the README and MCP clients launch them.
+- **CI runs the tests**: the workflow only installed frontend packages. It now runs ruff, pytest and bandit on Python 3.12, and builds the dashboard.
+- **Live orders obey the switches**: `LIVE_TRADING_ENABLED` and the `TRADING_HALTED` kill switch were documented but never read. Every live order, and every approval of one, now checks both; the kill switch halts on any value other than empty/false/0/no/off, and `PAPER_MODE` stays on unless explicitly off.
+- **The live policy applies on every path**: `ALLOW_TICKERS`, `ALLOW_BROKERAGES` and `MAX_ORDER_AMOUNT` were skipped for `approve_each` proposals and their approvals. They are checked when a live order is proposed and again when it executes; a refusal names its rule; an unreadable `MAX_ORDER_AMOUNT` refuses live orders instead of meaning "no limit".
+- **`EXECUTION_APPROVAL_MODE` fails closed**: a misspelling, or the `env.example` line as `docker --env-file` reads it (with its inline comment), executed orders with no approval. Any value other than `auto` now requires approval, and `env.example` has no inline comments or placeholder keys.
+- **Brokerage sandboxes by default**: Alpaca orders go to the Alpaca paper account unless `ALPACA_PAPER=false` (the connector used to key off `PAPER_MODE`, which is always false when it is used); `TRADIER_SANDBOX=1`/`yes` and `ETRADE_SANDBOX=1`/`yes`/`TRUE` no longer reach production.
+- **Orders are sized against the real account**: the size rule used a hardcoded $100,000 account and valued a share at $1. It now uses the paper ledger's equity (or the brokerage's in live mode) and the latest price, and a BUY it cannot size is refused.
+- **Paper trading tells the truth**: market orders fill at the latest price, a limit fills only when marketable (`limit_not_marketable`), `insufficient_funds` is an error, deposits must be positive, drawdown no longer spikes between the legs of a trade, and an unknown order type is refused instead of filling at the market.
+- **Approvals work across processes**: the MCP server and the API server now share proposals through `EXECUTION_DB_PATH` + `EXECUTION_SESSION_ID`; a cancel needs the proposal's `confirm_token`, and the API answers only the dashboard's origin (`API_CORS_ORIGINS`) instead of any web page.
+- **No fake successes**: news and sentiment tools whose source cannot answer return `not_configured` / `source_unavailable` instead of the error text as news; a failed backtest is `backtest_error`; `start_brokerage_private_ws` says `not_implemented` instead of "connected".
+- **The dashboard shows the real account**: it displayed hardcoded balances and a fabricated chart. It now reads `/api/portfolio` and `/api/health`, and approving asks for the proposal's `confirm_token`.
+- **Files stay with the install**: the paper ledger and stores were written under whatever folder the MCP client started the server in; they now live in `<repo>/data/` (`READYTRADER_DATA_DIR` moves them).
+- **Docs match the product**: README, RUNBOOK, ERRORS, EXCHANGES, MARKETDATA, THREAT_MODEL, POSITIONING and the prompt pack were rewritten against the running server (they described tools, streams and risk rules that do not exist); `docker build` no longer copies `.venv`, `.git`, `node_modules` or the local ledger into the image.
+- **Registry manifest and leftovers**: `smithery.yaml` did not parse and described a crypto/DeFi server; it is rewritten in Smithery's stdio format and starts this server. A transaction-signer left over from ReadyTrader-Crypto (`sentinel/`, `docker-compose.sentinel.yml`), which could not start, moved to `_deprecated/`.
+
+#### Earlier in this release
 - **Falling Knife now reads prices (security-relevant)**: every BUY - through `validate_trade_risk` and every order tool - reads the stock's last 40 daily bars (cached, one fetch per symbol per minute) and is refused while the stock is down 15%+ from its highest close of the last four sessions and still at its lowest close. SELLs are never blocked by it. On 64 stocks the rule had never seen (2000-2026) a buy on the days it fires fell a further 10% within ten sessions 49% of the time, against 13% on all days. Method, results and caveats: `docs/FALLING_KNIFE.md`; reproduction scripts: `research/falling_knife/`.
 - **Missing market data is explicit**: if the bars cannot be read, a BUY is blocked in live mode and allowed-but-flagged in paper mode (`MARKET_GUARD_ON_DATA_ERROR=block|allow` overrides; an unknown value blocks). `MARKET_GUARD_ENABLED=false` turns the check off. The `market` block in every verdict says what was read and why.
 - **A missing bar for today's session counts as stale**: once today's session has opened (`MARKET_TIMEZONE`, `MARKET_HOURS_START`, Monday to Friday) the provider must have today's bar, or the rule would read yesterday's closes and miss a collapse happening now. On an exchange holiday that reads as stale, the safe answer: a BUY would fill at the next open.
@@ -24,7 +42,7 @@ This project follows a lightweight changelog format.
 - **WebSocket Streams**: Replaced crypto streams (Binance/Coinbase/Kraken) with Alpaca stock streaming.
 - **Execution Routing**: Updated router terminology to focus on stock brokerages and retail execution.
 - **Tool Catalog**: Cleaned up MCP tools to remove crypto-specific actions (`swap_tokens`, `get_crypto_price`, etc.).
-- **Documentation**: Fully rebranded all docs from ReadyTrader-Stocks to ReadyTrader-Stocks.
+- **Documentation**: Fully rebranded all docs from ReadyTrader-Crypto to ReadyTrader-Stocks.
 
 ### 0.1.0 (2025-12-29)
 - **Initial Release (Crypto Focus)**: Agent-first MCP server for crypto trading workflows.
