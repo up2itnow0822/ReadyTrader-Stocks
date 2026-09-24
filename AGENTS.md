@@ -22,7 +22,11 @@ dashboard (`frontend/`).
   on any value but empty/off; an unknown `EXECUTION_APPROVAL_MODE` requires approval; an unreadable
   limit refuses live orders. Brokerage connectors default to paper/sandbox accounts.
 - Every live order passes `pre_trade_check` and `live_order_refusal` when placed or proposed, and
-  again at execution (including `/api/approve-trade`).
+  again at execution (including `/api/approve-trade`); a proposal executes only in the mode
+  (paper/live) it was made in.
+- Risk rules judge the exposure an order adds (from the paper ledger or the brokerage's positions):
+  selling out of a position is never sized as new exposure; an order that adds exposure and cannot
+  be priced or sized is refused; unknown live positions count as new exposure.
 - Tools answer `{"ok": true, "data"}` or `{"ok": false, "error": {"code", "message", "data"}}`; a
   source that cannot answer is an error, never a payload. New codes go in `docs/ERRORS.md`.
 - Default data files live in `<repo>/data/` via `common/paths.data_path` (never the working

@@ -38,7 +38,7 @@ ReadyTrader-Stocks operates on a **User-Custodied** basis. This means:
 
 1.  **Research:** You ask your agent, "Find a good entry for AAPL." The agent calls `get_stock_price`, `fetch_ohlcv`, `get_market_regime` and `get_social_sentiment`.
 2.  **Proposal:** The agent concludes, "AAPL is oversold; I want to buy 3 shares." It calls `place_market_order`.
-3.  **Governance:** The Risk Guardian checks the order against your account: no more than 5% of the account per trade (valued at the latest price), no BUYs after a 5% daily loss or a 10% drawdown, and no BUY into a collapse (`docs/FALLING_KNIFE.md`). Live orders also pass your `MAX_ORDER_AMOUNT` / `ALLOW_TICKERS` policy and need `LIVE_TRADING_ENABLED=true`.
+3.  **Governance:** The Risk Guardian checks the order against your account: no more than 5% of the account per trade (valued at the latest price; selling out of a position is an exit and is never sized as new exposure), nothing that adds exposure after a 5% daily loss or a 10% drawdown, and no BUY into a collapse (`docs/FALLING_KNIFE.md`). Live orders also pass your `MAX_ORDER_AMOUNT` / `ALLOW_TICKERS` policy and need `LIVE_TRADING_ENABLED=true`.
 4.  **Consent:** With `EXECUTION_APPROVAL_MODE=approve_each`, the order comes back as a pending proposal. You approve it through the [API or the dashboard](#-approving-trades-approve_each); the Risk Guardian checks it again with fresh prices, and only then does the trade execute.
 
 ---
@@ -55,7 +55,7 @@ ReadyTrader-Stocks operates on a **User-Custodied** basis. This means:
 **What it shows:**
 -   **Portfolio**: the paper account's balances, equity, today's P&L and drawdown, from `/api/portfolio` (the live view is not implemented yet).
 -   **Mode**: Paper Mode or LIVE TRADING, read from `/api/health`.
--   **Guard Rail**: pending `approve_each` proposals; **Approve** asks for the proposal's `confirm_token` and calls `/api/approve-trade`.
+-   **Guard Rail**: pending `approve_each` proposals with the order each would place (symbol, side, shares, type, venue, paper or live); **Approve** and **Reject** ask for the proposal's `confirm_token` and call `/api/approve-trade`.
 -   **Live Markets**: tickers pushed over the API's WebSocket (`/ws`). No tool starts a market-data stream in this release, so this panel stays empty.
 
 ---
@@ -182,8 +182,8 @@ Tools:
 
 With `EXECUTION_APPROVAL_MODE=approve_each`, every order that passes the Risk Guardian comes back as `{"status": "pending_approval", "request_id", "confirm_token"}` instead of executing. To approve it through the API (or the dashboard), run the MCP server and `python app/api_server.py` with the **same** `EXECUTION_DB_PATH` and `EXECUTION_SESSION_ID`; then:
 
-* `GET /api/pending-approvals` lists the proposals (they expire after 120 s).
-* `POST /api/approve-trade {"request_id", "confirm_token", "approve": true}` re-runs the Risk Guardian with fresh prices and executes; `"approve": false` cancels. A refusal answers `409` with the reason.
+* `GET /api/pending-approvals` lists the proposals with their orders, never their tokens (they expire after 120 s).
+* `POST /api/approve-trade {"request_id", "confirm_token", "approve": true}` re-runs the Risk Guardian with fresh prices and executes; `"approve": false` cancels. A refusal answers `409` with the reason; an unknown proposal `404`; a wrong token `403`. A proposal executes only in the mode it was made in: a paper proposal approved by an API running live is refused (`mode_mismatch`).
 
 ---
 

@@ -82,6 +82,12 @@ global_container.marketdata_ws_store.subscribe(broadcast_tick)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    # CORS does not cover WebSockets: a browser sends the page's Origin, and only the dashboard's
+    # origins may subscribe. Clients without an Origin (scripts, not browsers) are allowed.
+    origin = websocket.headers.get("origin")
+    if origin and origin not in CORS_ORIGINS:
+        await websocket.close(code=1008)
+        return
     await websocket.accept()
     active_connections.add(websocket)
     log_event("api_client_connected", ctx=API_CTX, data={"active_connections": len(active_connections)})
@@ -120,11 +126,22 @@ async def approve_trade(req: ApprovalRequest):
             try:
                 proposal = global_container.execution_store.confirm(req.request_id, req.confirm_token)
             except ValueError as ve:
-                raise HTTPException(status_code=400, detail=str(ve))
+                # 404 for an id the store has never seen, 403 for a wrong token, 409 for a proposal
+                # that can no longer be approved (expired, cancelled, already approved).
+                reason = str(ve)
+                status = 404 if reason.startswith("Unknown") else 403 if "confirm_token" in reason else 409
+                raise HTTPException(status_code=status, detail=reason)
 
             # 2. Execute based on kind
             if proposal.kind == "stock_order":
                 p = proposal.payload
+                # A proposal executes only in the mode it was made in: a paper proposal is never sent
+                # to a broker by an API running live, and the reverse.
+                if p.get("paper_mode") is not settings.PAPER_MODE:
+                    made_in = {True: "paper", False: "live"}.get(p.get("paper_mode"), "an unrecorded")
+                    runs_in = "paper" if settings.PAPER_MODE else "live"
+                    message = f"This proposal was made in {made_in} mode and this API runs in {runs_in} mode; nothing was executed."
+                    raise HTTPException(status_code=409, detail={"code": "mode_mismatch", "message": message})
 
                 # A proposal can wait until it expires while the market moves: re-run the Risk
                 # Guardian, with fresh daily bars, before anything executes.

@@ -263,6 +263,10 @@ def pre_trade_check(
 
     market_price = _market_price(symbol, market)
     reference_price = float(price) if price and price > 0 else market_price
+    # Selling out of a long is an exit, not new exposure; only what an order adds is sized.
+    position = _position_units(symbol, exchange)
+    added = exposure_added(side.lower(), amount, position)
+    increases_exposure = added > 0
     refusal = None
     if reference_price is None:
         refusal = f"Could not price {symbol} for the position-size check; pass a limit price or retry."
@@ -271,7 +275,8 @@ def pre_trade_check(
     risk_result = global_container.risk_guardian.validate_trade(
         side=side,
         symbol=symbol,
-        amount_usd=amount * (reference_price or 0.0),
+        increases_exposure=increases_exposure,
+        amount_usd=added * (reference_price or 0.0),
         portfolio_value=portfolio_value or 0.0,
         sentiment_score=sentiment["score"],
         daily_loss_pct=daily_loss,
@@ -280,8 +285,9 @@ def pre_trade_check(
     )
     allowed = bool(risk_result.get("allowed", False))
     reason = risk_result.get("reason", "Risk policy violation")
-    if allowed and refusal and side.lower() == "buy":
-        # The size rule needs both numbers; without them it could not run, so a BUY fails closed.
+    if allowed and refusal and increases_exposure:
+        # The size rule needs both numbers; without them it could not run, so an order that opens or
+        # adds to a position fails closed. One that only reduces a position goes through: an exit.
         allowed, reason = False, refusal
     return {
         "allowed": allowed,
@@ -290,7 +296,40 @@ def pre_trade_check(
         "market": market,
         "reference_price": reference_price,
         "market_price": market_price,
+        "position_units": position,
+        "exposure_added_units": added,
     }
+
+
+def _position_units(symbol: str, exchange: str) -> Optional[float]:
+    """Shares currently held (negative if short), or None when they cannot be read. Paper: the paper
+    ledger. Live: the brokerage's positions."""
+    key = (symbol or "").strip().upper()
+    if settings.PAPER_MODE:
+        try:
+            return float(global_container.paper_engine.get_balance("agent_zero", key))
+        except Exception:
+            return None
+    brokerage = global_container.brokerages.get((exchange or "").strip().lower())
+    if brokerage is None or not brokerage.is_available():
+        return None
+    try:
+        positions = brokerage.list_positions()
+    except Exception:
+        return None
+    return sum(float(p.get("qty") or 0.0) for p in positions or [] if str(p.get("symbol") or "").strip().upper() == key)
+
+
+def exposure_added(side: str, amount: float, position: Optional[float]) -> float:
+    """How many shares of the order open or add to a position. Selling out of a long, or buying back a
+    short, reduces exposure; only what goes beyond flat adds it. Unknown position: all of it adds."""
+    amount = abs(float(amount))
+    if position is None:
+        return amount
+    signed = amount if side == "buy" else -amount
+    if position == 0 or (position > 0) == (signed > 0):
+        return amount
+    return max(0.0, amount - abs(position))
 
 
 def _live_equity(exchange: str) -> Optional[float]:
@@ -405,6 +444,12 @@ def place_stock_order(
         return _json_err("invalid_request", problem)
     side = side.strip().lower()
     order_type = order_type.strip().lower()
+    if not settings.PAPER_MODE:
+        ex = (exchange or "").strip().lower()
+        if ex not in global_container.brokerages:
+            return _json_err("brokerage_not_supported", f"Brokerage {exchange} not found.")
+        if not global_container.brokerages[ex].is_available():
+            return _json_err("brokerage_not_configured", f"{exchange} keys are missing. Cannot execute a live order.")
 
     # Compliance Record
     global_compliance_ledger.record_event("trade_start", {
@@ -418,7 +463,12 @@ def place_stock_order(
             return _json_err(
                 "risk_blocked",
                 check["reason"],
-                {"sentiment": check["sentiment"], "market": check["market"]},
+                {
+                    "sentiment": check["sentiment"],
+                    "market": check["market"],
+                    "position_units": check["position_units"],
+                    "exposure_added_units": check["exposure_added_units"],
+                },
             )
 
         # A live order that the switches or the live policy would refuse is refused now, not
@@ -436,6 +486,8 @@ def place_stock_order(
                     "order_type": order_type, "rationale": rationale, "exchange": exchange,
                     # Kept so the approval path can re-run the same check at execution time.
                     "sentiment_score": sentiment_score,
+                    # A proposal executes only in the mode it was made in (paper/live).
+                    "paper_mode": settings.PAPER_MODE,
                 }
             )
             return _json_ok({

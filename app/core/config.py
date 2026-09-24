@@ -7,6 +7,15 @@ from common.switches import approval_mode, kill_switch_on, safety_switch_on  # n
 load_dotenv()
 
 
+
+def _unapplied_number(name: str, default: float, cast=float):
+    """A setting kept so existing configurations load, which no check applies: a malformed value
+    falls back to the default instead of stopping the server."""
+    try:
+        return cast(os.getenv(name, str(default)).strip())
+    except (TypeError, ValueError):
+        return cast(default)
+
 class Settings:
     PROJECT_NAME: str = "ReadyTrader-Stocks"
     VERSION: str = "0.1.0"
@@ -17,7 +26,7 @@ class Settings:
     MARKET_TIMEZONE: str = os.getenv("MARKET_TIMEZONE", "US/Eastern")
     # Not read by any check. The price-based Falling Knife rule (core/market_guard.py) is configured
     # with the MARKET_GUARD_* settings below; see docs/FALLING_KNIFE.md.
-    CIRCUIT_BREAKER_PCT: float = float(os.getenv("CIRCUIT_BREAKER_PCT", "0.07"))
+    CIRCUIT_BREAKER_PCT: float = _unapplied_number("CIRCUIT_BREAKER_PCT", 0.07)
 
     # Each switch fails toward the safe side (common/switches.py): paper mode stays on unless
     # explicitly false/0/no/off; live trading needs exactly "true"; the kill switch halts on any
@@ -41,6 +50,6 @@ class Settings:
     MARKET_GUARD_ON_DATA_ERROR: str = os.getenv("MARKET_GUARD_ON_DATA_ERROR", "").strip().lower()
 
     # Observability
-    RATE_LIMIT_DEFAULT_PER_MIN: int = int(os.getenv("RATE_LIMIT_DEFAULT_PER_MIN", "120"))
+    RATE_LIMIT_DEFAULT_PER_MIN: int = _unapplied_number("RATE_LIMIT_DEFAULT_PER_MIN", 120, int)
 
 settings = Settings()

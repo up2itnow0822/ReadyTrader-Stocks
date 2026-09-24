@@ -32,7 +32,8 @@ Every setting is read when a process starts, so **restart both processes after c
 - `curl -s 127.0.0.1:8000/api/pending-approvals` lists proposals (they expire after 120 s).
 - Approve: `POST /api/approve-trade` with `{"request_id", "confirm_token", "approve": true}`; the
   agent received the `confirm_token` with the proposal. The Risk Guardian, the kill switch and the
-  live policy are checked again before anything executes; a refusal answers `409` with its `code`.
+  live policy are checked again before anything executes; a refusal answers `409` with its `code`,
+  an unknown proposal `404`, a wrong token `403`.
 - Cancel: the same call with `"approve": false` (the `confirm_token` is required here too).
 - The dashboard (`frontend/`) does the same from a browser at `http://localhost:3000`. Other
   browser origins are refused unless listed in `API_CORS_ORIGINS`.
@@ -55,10 +56,11 @@ Every setting is read when a process starts, so **restart both processes after c
 
 #### 1) BUYs refused with `risk_blocked`
 - **Read the reason** in the error. Common ones:
-  - `Position size too large`: the order is more than 5% of the account's equity (paper equity, or
-    the brokerage's reported equity in live mode). Reduce the size.
+  - `Position size too large`: the part of the order that opens or adds to a position is more than
+    5% of the account's equity (paper equity, or the brokerage's reported equity in live mode).
+    Selling out of a position is never refused by this rule. Reduce the size.
   - `Daily Loss Limit Hit` / `Max Drawdown`: the account lost 5% today or is 10% below its peak;
-    BUYs resume when the condition clears. SELLs are always allowed.
+    orders that add exposure resume when the condition clears; selling out is always allowed.
   - Falling Knife: the stock fell 15%+ over four closes and is still falling; see
     `docs/FALLING_KNIFE.md`.
   - `account's equity` / cannot be priced: the check could not read the account or the price, so
