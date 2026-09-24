@@ -1,0 +1,10 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/st_badnum.sh
+# at 2026-09-24T12:25:32+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CIRCUIT_BREAKER_PCT=7% => ValueError: could not convert string to float: '7%'
+      |     raise McpError(response_or_error.error)
+RATE_LIMIT_DEFAULT_PER_MIN=lots => ValueError: invalid literal for int() with base 10: 'lots'
+      |     raise McpError(response_or_error.error)
+
+
+exit=0
