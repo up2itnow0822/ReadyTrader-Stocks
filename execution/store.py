@@ -24,6 +24,8 @@ import time
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
+from common.paths import data_path, ensure_parent
+
 # Webhooks for notifications
 try:
     from observability.webhooks import WebhookManager
@@ -54,16 +56,18 @@ class ExecutionStore:
         self._lock = threading.Lock()
         self._items: Dict[str, ExecutionProposal] = {}
         self._conn: Optional[sqlite3.Connection] = None
-        # Used to invalidate any persisted proposals across restarts.
-        self._session_id = secrets.token_hex(8)
+        # Scopes persisted proposals: a fresh id per process invalidates proposals across restarts.
+        # EXECUTION_SESSION_ID, set to the same value for the MCP server and the API server (with
+        # the same EXECUTION_DB_PATH), lets the API see and approve the MCP server's proposals.
+        self._session_id = (os.getenv("EXECUTION_SESSION_ID") or "").strip() or secrets.token_hex(8)
 
     def persistence_enabled(self) -> bool:
         return bool(self._db_path())
 
     def _db_path(self) -> str:
-        default = "data/execution.db"
+        default = data_path("execution.db")
         p = (os.getenv("READYTRADER_EXECUTION_DB_PATH") or os.getenv("EXECUTION_DB_PATH") or default).strip()
-        os.makedirs(os.path.dirname(p), exist_ok=True)
+        ensure_parent(p)
         return p
 
     def _get_conn(self) -> Optional[sqlite3.Connection]:
@@ -254,10 +258,14 @@ class ExecutionStore:
                     )
             return {"pending": pending}
 
-    def cancel(self, request_id: str) -> bool:
+    def cancel(self, request_id: str, confirm_token: Optional[str] = None) -> bool:
+        """Cancel a pending proposal. When `confirm_token` is given (every API call gives one) it must
+        match, so knowing a request_id alone is not enough to cancel someone's proposal."""
         with self._lock:
             p = self._items.get(request_id) or self._load(request_id)
             if not p:
+                return False
+            if confirm_token is not None and not secrets.compare_digest(p.confirm_token, confirm_token):
                 return False
             if p.confirmed_at is not None:
                 return False

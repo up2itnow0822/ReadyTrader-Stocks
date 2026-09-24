@@ -161,6 +161,13 @@ a {
   border: 1px solid var(--warning);
 }
 
+.status-pill.live,
+.status-pill.offline {
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
