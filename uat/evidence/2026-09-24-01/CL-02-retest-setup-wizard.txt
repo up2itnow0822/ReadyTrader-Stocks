@@ -20,7 +20,7 @@ Checking Critical Keys in .env...
 [1mSetup Scan Complete![0m
 Next steps:
 1. Open [1m.env[0m; paper mode needs no keys. For live trading see the README.
-2. Read [1m.env[0m; paper mode needs no keys. For live trading see the README.[1mdocs/SENTIMENT.md[0m for intelligence feed setup.
+2. Read [1mdocs/SENTIMENT.md[0m for intelligence feed setup.
 3. Run [1mpython app/main.py[0m to start the MCP server (your MCP client can launch it).
 
 exit=0
