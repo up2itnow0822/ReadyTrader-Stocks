@@ -1,0 +1,9 @@
+$ bash -c 'PROBE_MAX=3000 timeout 300 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/mcp_call.py . "[\"app/main.py\"]" "{\"PAPER_MODE\":\"true\",\"PAPER_DB_PATH\":\"/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/rt_BE-05b.db\"}" "[[\"deposit_paper_funds\",{\"asset\":\"USD\",\"amount\":100000}],[\"place_market_order\",{\"symbol\":\"AAPL\",\"side\":\"buy\",\"amount\":60}]]" 2>&1 | grep -E "^CALL" | grep -oE "(Deposited[^\"]*|\"code\": \"[a-z_]+\"|\"message\": \"[^\"]*\")'
+# at 2026-09-24T07:28:57+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+"message": "Deposited 100000.0 USD. New Balance: 100000.0"
+"code": "risk_blocked"
+"message": "Position size too large (20.2%). Max allowed is 5%."
+
+
+exit=0
