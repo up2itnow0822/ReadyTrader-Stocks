@@ -7,16 +7,20 @@ ReadyTrader-Stocks empowers AI agents with "Eyes" (intelligence) to navigate the
 | Source | Target | Cost | Required Credentials | 
 | :--- | :--- | :--- | :--- |
 | **RSS Market News** | General | Free | None (MarketWatch, Yahoo Finance) |
-| **Fear & Greed Index** | Market | Free | None |
-| **Reddit** | Social | Free | Client ID + Secret (/r/wallstreetbets) |
-| **NewsAPI** | Financial | Free (Trial) | API Key (Bloomberg, Reuters) |
+| **Fear & Greed Index** | Market | Free | None (CNN's unofficial endpoint; it often refuses automated requests) |
+| **Reddit** | Social | Free | Client ID + Secret (r/stocks, r/wallstreetbets) |
+| **X (Twitter)** | Social | Paid API | Bearer token (`TWITTER_BEARER_TOKEN`) |
+| **NewsAPI** | Financial | Free (developer plan) | API key (`NEWSAPI_KEY`) |
+| **Alpha Vantage** | Financial | Free tier | API key (`ALPHAVANTAGE_API_KEY`) |
 
 ---
 
 ## 🛠️ Configuration Instructions
 
 ### 1. Free News & Sentiment
-Work **out-of-the-box**. Agents use `fetch_rss_news` and `get_market_sentiment` without any keys.
+No keys needed: agents use `fetch_rss_news` and `get_market_sentiment`. When a source cannot
+answer, the tool says so instead of returning its error as news: `{"ok": false, "error": {"code":
+"source_unavailable"}}`, or `"not_configured"` when a key is missing.
 
 ### 2. Reddit Sentiment (High Alpha)
 Great for detecting retail buzz and "meme stock" momentum.
@@ -28,13 +32,15 @@ Great for detecting retail buzz and "meme stock" momentum.
     REDDIT_CLIENT_SECRET=your_secret
     ```
 
-### 3. Financial News (Institutional)
-For high-signal news from major financial outlets via NewsAPI.
+### 3. Financial News
+Headlines from NewsAPI's search (`<symbol> stock`, by relevance) and Alpha Vantage's news feed.
 1.  Get a key at [NewsAPI.org](https://newsapi.org/).
 2.  Add to `.env`:
     ```bash
     NEWSAPI_KEY=your_key
     ```
+3.  For `get_market_news`, get a free key at [Alpha Vantage](https://www.alphavantage.co/support/#api-key)
+    and set `ALPHAVANTAGE_API_KEY`.
 
 ---
 
@@ -43,7 +49,8 @@ For high-signal news from major financial outlets via NewsAPI.
 - `fetch_rss_news(symbol="")`: Aggregates public RSS feeds. Best for general context.
 - `get_market_sentiment()`: Returns the Stock Market Fear & Greed Index.
 - `get_social_sentiment(symbol)`: Returns recent X and Reddit posts about a ticker **for you to read**. Returns text, not a score — see "The Falling Knife rule" below.
-- `get_financial_news(symbol)`: Queries high-tier publications (Bloomberg, Reuters).
+- `get_financial_news(symbol)`: The top NewsAPI headlines for the ticker.
+- `get_market_news(symbol="")`: Alpha Vantage headlines, for one ticker if given.
 
 ______________________________________________________________________
 
