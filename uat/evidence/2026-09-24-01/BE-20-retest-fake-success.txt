@@ -1,0 +1,18 @@
+$ bash -c 'PROBE_MAX=500 timeout 200 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/mcp_call.py . "[\"app/main.py\"]" "{\"PAPER_MODE\":\"true\",\"PAPER_DB_PATH\":\"/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/rt_BE-20.db\"}" "[[\"deposit_paper_funds\",{\"asset\":\"USD\",\"amount\":1000}],[\"place_limit_order\",{\"symbol\":\"AAPL\",\"side\":\"buy\",\"amount\":1,\"price\":330}],[\"deposit_paper_funds\",{\"asset\":\"USD\",\"amount\":99000}],[\"place_limit_order\",{\"symbol\":\"AAPL\",\"side\":\"buy\",\"amount\":1,\"price\":345}],[\"place_limit_order\",{\"symbol\":\"AAPL\",\"side\":\"sell\",\"amount\":5,\"price\":330}]]" 2>&1 | grep ^CALL | grep -oE "(\"code\": \"[a-z_]+\"|\"message\": \"[^\"]*\"|Paper Trade Executed[^\"]*|Deposited[^\"]*)"; echo "== live mode, start_brokerage_private_ws"; PAPER_MODE=false /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python -c "import sys; sys.path.insert(0, \".\"); from app.tools.trading import start_brokerage_private_ws as f; print(\" \".join(f(\"alpaca\").split()))" 2>&1 | tail -1'
+# at 2026-09-24T07:49:13+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+"message": "Deposited 1000.0 USD. New Balance: 1000.0"
+"code": "risk_blocked"
+"message": "Position size too large (20.2%). Max allowed is 5%."
+"code": "limit_not_marketable"
+"message": "Paper Trade Executed: BUY 1.0 AAPL @ 337.0199890136719. Value: 337.0199890136719 USD. Rationale: BE-20": {"message": "Deposited 99000.0 USD. New Balance: 100000.0"}
+
+CALL deposit_paper_funds {"asset": "USD", "amount": 99000} -> { "data": { "message": "Deposited 1000.0 USD. New Balance: 1000.0" }, "ok": true }
+CALL place_limit_order {"symbol": "AAPL", "side": "buy", "amount": 1, "price": 330} -> { "data": { "result": "Paper Trade Executed: BUY 1.0 AAPL @ 337.0199890136719. Value: 337.0199890136719 USD. Rationale: stock_order_paper", "venue": "paper" }, "ok": true }
+CALL place_limit_order {"symbol": "AAPL", "side": "sell", "amount": 5, "price": 330} -> { "data": { "result": "Insufficient fund. Have 1.0 AAPL, need 5.0", "venue": "paper" }, "ok": true }
+== live mode, start_brokerage_private_ws
+{ "error": { "code": "not_implemented", "data": {}, "message": "Private alpaca streams and":"200"
+    },
+    "body": "200"
+  ]
+}

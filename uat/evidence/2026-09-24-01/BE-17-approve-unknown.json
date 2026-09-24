@@ -1,0 +1,38 @@
+{
+  "captured_at": "2026-09-24T07:25:26+0000",
+  "request": {
+    "method": "POST",
+    "url": "http://127.0.0.1:8766/api/approve-trade",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"request_id\":\"nope\",\"confirm_token\":\"x\",\"approve\":true}"
+  },
+  "response": {
+    "status": 400,
+    "headers": {
+      "date": "Thu, 24 Sep 2026 07:25:26 GMT",
+      "server": "uvicorn",
+      "content-length": "31",
+      "content-type": "application/json",
+      "Connection": "close"
+    },
+    "body": "{\"detail\":\"Unknown request_id\"}",
+    "elapsed_ms": 5,
+    "error": null
+  },
+  "expectations": [
+    {
+      "expectation": "status in [400, 404]",
+      "passed": true,
+      "detail": "got 400"
+    },
+    {
+      "expectation": "body does not contain 'Traceback'",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "ok": true,
+  "reason": ""
+}

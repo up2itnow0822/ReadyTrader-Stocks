@@ -1,0 +1,33 @@
+{
+  "captured_at": "2026-09-24T07:25:26+0000",
+  "request": {
+    "method": "POST",
+    "url": "http://127.0.0.1:8766/api/approve-trade",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{}"
+  },
+  "response": {
+    "status": 422,
+    "headers": {
+      "date": "Thu, 24 Sep 2026 07:25:26 GMT",
+      "server": "uvicorn",
+      "content-length": "255",
+      "content-type": "application/json",
+      "Connection": "close"
+    },
+    "body": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"request_id\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"confirm_token\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"approve\"],\"msg\":\"Field required\",\"input\":{}}]}",
+    "elapsed_ms": 6,
+    "error": null
+  },
+  "expectations": [
+    {
+      "expectation": "status == 422",
+      "passed": true,
+      "detail": "got 422"
+    }
+  ],
+  "ok": true,
+  "reason": ""
+}

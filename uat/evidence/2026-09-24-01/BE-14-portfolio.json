@@ -1,0 +1,31 @@
+{
+  "captured_at": "2026-09-24T07:25:26+0000",
+  "request": {
+    "method": "GET",
+    "url": "http://127.0.0.1:8766/api/portfolio",
+    "headers": {},
+    "body": ""
+  },
+  "response": {
+    "status": 500,
+    "headers": {
+      "date": "Thu, 24 Sep 2026 07:25:26 GMT",
+      "server": "uvicorn",
+      "content-length": "21",
+      "content-type": "text/plain; charset=utf-8",
+      "Connection": "close"
+    },
+    "body": "Internal Server Error",
+    "elapsed_ms": 4,
+    "error": null
+  },
+  "expectations": [
+    {
+      "expectation": "status == 200",
+      "passed": false,
+      "detail": "got 500"
+    }
+  ],
+  "ok": false,
+  "reason": "status == 200 (got 500)"
+}
