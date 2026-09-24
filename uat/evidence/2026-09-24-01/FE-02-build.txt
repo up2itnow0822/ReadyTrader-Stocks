@@ -1,0 +1,28 @@
+$ bash -c 'cd frontend && NEXT_TELEMETRY_DISABLED=1 npm run build 2>&1 | tail -25; echo exit=${PIPESTATUS[0]}'
+# at 2026-09-24T07:18:12+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+
+> frontend@0.1.0 build
+> next build
+
+▲ Next.js 16.1.1 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 6.4s
+  Running TypeScript ...
+Failed to compile.
+
+./src/app/page.tsx:30:9
+Type error: Cannot find name 'setPortfolio'. Did you mean 'fetchPortfolio'?
+
+[0m [90m 28 |[39m       [36mif[39m (res[33m.[39mok) {
+ [90m 29 |[39m         [36mconst[39m data [33m=[39m [36mawait[39m res[33m.[39mjson()[33m;[39m
+[31m[1m>[22m[39m[90m 30 |[39m         setPortfolio(data)[33m;[39m
+ [90m    |[39m         [31m[1m^[22m[39m
+ [90m 31 |[39m       }
+ [90m 32 |[39m     }[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: null
+exit=1
+
+
+exit=0
