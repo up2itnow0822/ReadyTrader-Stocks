@@ -11,6 +11,7 @@ from app.core.config import settings
 
 # Import core components from the main server
 from app.core.container import global_container
+from app.tools.trading import pre_trade_check
 from marketdata.store import TickerSnapshot
 from observability import build_log_context, log_event
 
@@ -36,12 +37,12 @@ def broadcast_tick(snap: TickerSnapshot):
     """
     if not active_connections:
         return
-        
+
     payload = {
         "type": "TICKER_UPDATE",
         "data": snap.to_dict()
     }
-    
+
     # We need to run this in the event loop of the FastAPI app
     # Since this callback might be triggered from a background thread
     # We use a global loop reference or call_soon_threadsafe
@@ -59,7 +60,7 @@ async def broadcast_all(payload: dict):
             await websocket.send_text(message)
         except Exception:
             disconnected.add(websocket)
-            
+
     for ws in disconnected:
         active_connections.remove(ws)
 
@@ -107,11 +108,27 @@ async def approve_trade(req: ApprovalRequest):
                 proposal = global_container.execution_store.confirm(req.request_id, req.confirm_token)
             except ValueError as ve:
                 raise HTTPException(status_code=400, detail=str(ve))
-            
+
             # 2. Execute based on kind
             if proposal.kind == "stock_order":
                 p = proposal.payload
-                
+
+                # A proposal can wait until it expires while the market moves: re-run the Risk
+                # Guardian, with fresh daily bars, before anything executes.
+                check = pre_trade_check(
+                    p["symbol"], p["side"], p["amount"], p.get("price", 0.0), p.get("sentiment_score")
+                )
+                if not check["allowed"]:
+                    log_event(
+                        "api_approval_risk_blocked",
+                        ctx=API_CTX,
+                        data={"request_id": req.request_id, "reason": check["reason"]},
+                    )
+                    raise HTTPException(
+                        status_code=409,
+                        detail={"code": "risk_blocked", "reason": check["reason"], "market": check["market"]},
+                    )
+
                 if settings.PAPER_MODE:
                     res = global_container.paper_engine.execute_trade(
                         user_id="agent_zero",
@@ -127,11 +144,11 @@ async def approve_trade(req: ApprovalRequest):
                     exchange = p.get("exchange", "alpaca").lower()
                     if exchange not in global_container.brokerages:
                         raise HTTPException(status_code=400, detail=f"Brokerage {exchange} is not supported.")
-                    
+
                     brokerage = global_container.brokerages[exchange]
                     if not brokerage.is_available():
                         raise HTTPException(status_code=400, detail=f"Brokerage {exchange} is not configured with API keys.")
-                    
+
                     try:
                         res = brokerage.place_order(
                             symbol=p["symbol"],
@@ -143,7 +160,7 @@ async def approve_trade(req: ApprovalRequest):
                         return {"ok": True, "result": res}
                     except Exception as e:
                         raise HTTPException(status_code=500, detail=f"Execution error: {str(e)}")
-            
+
             return {"ok": False, "error": "Unknown proposal kind"}
         else:
             success = global_container.execution_store.cancel(req.request_id)

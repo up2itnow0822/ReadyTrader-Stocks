@@ -29,7 +29,9 @@ from __future__ import annotations
 import math
 import time
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, List, Optional, Sequence
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+from zoneinfo import ZoneInfo
 
 KNIFE_WINDOW = 3
 KNIFE_MIN_DROP = 0.15
@@ -65,6 +67,31 @@ class MarketReading:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class Session:
+    """
+    A trading session, for the freshness check: once today's session has opened, the provider must
+    already have today's daily bar, or the check would be reading yesterday's closes while missing a
+    collapse happening now. Daily bars are stamped at midnight of their session date in the
+    exchange's time zone (yfinance), which is how a bar is matched to a date.
+    """
+
+    tz: str
+    open_hhmm: str = "00:00"
+    weekdays: Tuple[int, ...] = (0, 1, 2, 3, 4)  # Monday..Friday
+
+    def open_date(self, now_ms: int) -> Optional[date]:
+        """Today's date in `tz` if today is a session day and the session has opened, else None."""
+        local = datetime.fromtimestamp(now_ms / 1000, ZoneInfo(self.tz))
+        hour, minute = (int(part) for part in self.open_hhmm.split(":"))
+        if local.weekday() in self.weekdays and (local.hour, local.minute) >= (hour, minute):
+            return local.date()
+        return None
+
+    def bar_date(self, ts_ms: int) -> date:
+        return datetime.fromtimestamp(ts_ms / 1000, ZoneInfo(self.tz)).date()
+
+
 def _clean(ohlcv: Sequence[Sequence[Any]]) -> List[List[float]]:
     """Keep rows with a timestamp and finite, positive, consistent OHLC; sort and de-duplicate by time."""
     rows: Dict[int, List[float]] = {}
@@ -80,6 +107,11 @@ def _clean(ohlcv: Sequence[Sequence[Any]]) -> List[List[float]]:
     return [rows[k] for k in sorted(rows)]
 
 
+def _now_ms() -> int:
+    """The clock `assess` uses when no `now_ms` is given (tests replace it)."""
+    return int(time.time() * 1000)
+
+
 def _iso(ts_ms: int) -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts_ms / 1000))
 
@@ -91,8 +123,15 @@ def assess(
     window: int = KNIFE_WINDOW,
     now_ms: Optional[int] = None,
     max_staleness_days: float = MAX_STALENESS_DAYS,
+    session: Optional[Session] = None,
 ) -> MarketReading:
-    """Evaluate the latest bar of `ohlcv` ([[ts_ms, open, high, low, close, volume], ...])."""
+    """
+    Evaluate the latest bar of `ohlcv` ([[ts_ms, open, high, low, close, volume], ...]).
+
+    With a `session`, a latest bar older than today's session is stale once that session has
+    opened. On an exchange holiday that reads as stale all day, which is the safe answer: the market
+    is closed, so a BUY would fill at the next open, on a price this check has not seen.
+    """
     bars = _clean(ohlcv)
     if len(bars) < window + 1:
         return MarketReading(
@@ -102,7 +141,7 @@ def assess(
         )
 
     last_ts = int(bars[-1][0])
-    now = int(time.time() * 1000) if now_ms is None else int(now_ms)
+    now = _now_ms() if now_ms is None else int(now_ms)
     age_days = (now - last_ts) / 86_400_000
     if age_days > max_staleness_days:
         return MarketReading(
@@ -111,6 +150,19 @@ def assess(
             as_of=_iso(last_ts),
             detail=f"latest daily bar is {age_days:.1f} days old",
         )
+    if session is not None:
+        today = session.open_date(now)
+        latest = session.bar_date(last_ts)
+        if today is not None and latest < today:
+            return MarketReading(
+                status=STATUS_STALE,
+                bars=len(bars),
+                as_of=_iso(last_ts),
+                detail=(
+                    f"no daily bar yet for today's session ({today.isoformat()}, {session.tz}); "
+                    f"the latest is {latest.isoformat()}"
+                ),
+            )
 
     closes = [b[4] for b in bars[-(window + 1):]]
     peak_close = max(closes)
