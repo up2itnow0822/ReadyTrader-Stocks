@@ -57,7 +57,8 @@ CATEGORY_ORDER = [
     ("Safety & Governance", ["validate_trade_risk", "reset_paper_wallet", "deposit_paper_funds"]),
 ]
 
-def main():
+def render() -> str:
+    """The catalog as it should read now (tests compare it with docs/TOOLS.md)."""
     tools = {}
     for py_file in TOOLS_DIR.glob("*.py"):
         if py_file.name == "__init__.py":
@@ -82,7 +83,7 @@ def main():
             fn = tools[name]
             doc = (ast.get_docstring(fn) or "").strip()
             first = doc.splitlines()[0].strip() if doc else "No description."
-            lines.append(f"| [`{name}`](#{name.replace('_', '-')}) | {first} |")
+            lines.append(f"| [`{name}`](#{name}) | {first} |")  # GitHub keeps underscores in heading anchors
         lines.append("")
         for name in present:
             fn = tools[name]
@@ -93,8 +94,13 @@ def main():
                 lines.extend([f"```text\n{doc}\n```", ""])
             lines.extend(["---", ""])
 
-    OUT.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-    print(f"Wrote {OUT.relative_to(ROOT)} ({len(tools)} tools)")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main():
+    text = render()
+    OUT.write_text(text, encoding="utf-8")
+    print(f"Wrote {OUT.relative_to(ROOT)} ({text.count(chr(10) + '### ')} tools)")
 
 if __name__ == "__main__":
     main()
