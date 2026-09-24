@@ -173,3 +173,16 @@ def test_env_example_carries_no_placeholder_credentials():
         if line.strip() and not line.lstrip().startswith("#"):
             value = line.split("=", 1)[1].strip() if "=" in line else ""
             assert not value.lower().startswith("your_"), f"env.example:{n} sets a placeholder: {line!r}"
+
+
+def test_a_malformed_setting_that_nothing_applies_does_not_stop_the_server():
+    code = "from app.core.config import settings as s; print(s.CIRCUIT_BREAKER_PCT, s.RATE_LIMIT_DEFAULT_PER_MIN)"
+    out = subprocess.run(  # nosec B603 - fixed argv, no shell
+        [sys.executable, "-W", "ignore", "-c", code],
+        cwd=ROOT,
+        env={**os.environ, "CIRCUIT_BREAKER_PCT": "7%", "RATE_LIMIT_DEFAULT_PER_MIN": "lots"},
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert out.strip().splitlines()[-1] == "0.07 120"

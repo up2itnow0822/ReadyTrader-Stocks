@@ -14,6 +14,15 @@ RED = "\033[91m"
 BOLD = "\033[1m"
 RESET = "\033[0m"
 
+def ask(prompt: str) -> str:
+    """input() that treats a closed stdin (CI, a pipe) as no answer instead of crashing."""
+    try:
+        return input(prompt)
+    except EOFError:
+        print("(no answer)")
+        return ""
+
+
 def print_banner():
     print(f"\n{BOLD}ReadyTrader-Stocks Setup Wizard 🛡️{RESET}")
     print("-----------------------------------")
@@ -25,11 +34,12 @@ def check_env_file() -> bool:
         return True
     else:
         print(f"{YELLOW}[?]{RESET} .env file missing.")
-        choice = input("Do you want to create a .env from env.example now? (y/n): ")
+        choice = ask("Do you want to create a .env from env.example now? (y/n): ")
         if choice.lower() == 'y':
             shutil.copy("env.example", ".env")
             print(f"{GREEN}[✓]{RESET} .env file created. Please open it and fill in your keys later.")
             return True
+        print("  Paper mode needs no .env. To configure one later: cp env.example .env")
     return False
 
 def check_dependencies() -> List[str]:
@@ -92,7 +102,7 @@ def main():
     
     if missing_deps:
         print(f"\n{YELLOW}Missing dependencies detected.{RESET}")
-        choice = input("Would you like to install them now? (y/n): ")
+        choice = ask("Would you like to install them now? (y/n): ")
         if choice.lower() == 'y':
             print("Installing...")
             subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"]) # nosec

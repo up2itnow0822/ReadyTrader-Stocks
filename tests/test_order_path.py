@@ -159,11 +159,12 @@ def test_an_enabled_live_order_passes_policy_and_reaches_the_brokerage(live):
 
 
 def test_a_live_order_without_brokerage_keys_is_refused(monkeypatch, live):
-    monkeypatch.setitem(global_container.brokerages, "alpaca", FakeBroker(available=False))
-    buy = json.loads(trading.place_stock_order("AAPL", "buy", 1.0, price=100.0))
-    assert buy["error"]["code"] == "risk_blocked" and "account's equity" in buy["error"]["message"]
-    sell = json.loads(trading.place_stock_order("AAPL", "sell", 1.0, price=100.0))
-    assert sell["error"]["code"] == "brokerage_not_configured"
+    broker = FakeBroker(available=False)
+    monkeypatch.setitem(global_container.brokerages, "alpaca", broker)
+    for side in ("buy", "sell"):
+        payload = json.loads(trading.place_stock_order("AAPL", side, 1.0, price=100.0))
+        assert payload["error"]["code"] == "brokerage_not_configured"
+    assert broker.orders == []
 
 
 def test_a_live_order_is_sized_against_the_brokerage_account(monkeypatch, live):
@@ -283,7 +284,9 @@ def test_an_approval_without_brokerage_keys_is_a_coded_error(monkeypatch, live):
         "/api/approve-trade",
         json={"request_id": proposal["request_id"], "confirm_token": proposal["confirm_token"], "approve": True},
     )
-    assert response.status_code == 400 and response.json()["detail"]["code"] == "brokerage_not_configured"
+    # Without keys the account cannot be read, so the re-check refuses the order before execution.
+    assert response.status_code == 409 and response.json()["detail"]["code"] == "risk_blocked"
+    assert "equity" in response.json()["detail"]["reason"]
 
 
 # ---------------------------------------------------------------- malformed requests
@@ -408,3 +411,103 @@ def test_fetch_rss_news_reads_the_built_in_feeds(monkeypatch):
     monkeypatch.setattr("intelligence.core.feedparser.parse", lambda url: Feed())
     news = json.loads(intelligence.fetch_rss_news("AAPL"))["data"]["news"]
     assert "Apple AAPL rallies" in news and "Oil slips" not in news
+
+
+def test_approval_errors_say_which_problem_it_is(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    import app.api_server as api
+
+    client = TestClient(api.app)
+
+    def approve(request_id, token):
+        return client.post("/api/approve-trade", json={"request_id": request_id, "confirm_token": token, "approve": True})
+
+    assert approve("nope", "x").status_code == 404
+    proposal = global_container.execution_store.create(kind="stock_order", payload={"symbol": "AAPL"})
+    assert approve(proposal.request_id, "guess").status_code == 403
+    global_container.execution_store.cancel(proposal.request_id, proposal.confirm_token)
+    assert approve(proposal.request_id, proposal.confirm_token).status_code == 409  # cancelled
+
+
+# ---------------------------------------------------------------- exits are not new exposure
+
+
+def test_a_position_bigger_than_one_trade_can_be_sold_in_one_order(monkeypatch):
+    fills = []
+    monkeypatch.setattr(type(global_container.paper_engine), "get_balance", lambda self, user, asset: 300.0 if asset == "AAPL" else 0.0)
+    monkeypatch.setattr(type(global_container.paper_engine), "execute_trade", lambda self, **kw: fills.append(kw) or "ok")
+    # 300 shares at ~100 is ~30% of the account: an exit, so the size rule does not apply.
+    check = trading.pre_trade_check("AAPL", "sell", 300.0)
+    assert check["allowed"] and check["exposure_added_units"] == 0
+    assert not trading.pre_trade_check("AAPL", "buy", 300.0)["allowed"]  # the same size as a BUY is refused
+
+
+def test_after_the_drawdown_limit_selling_out_is_allowed(monkeypatch):
+    monkeypatch.setattr(type(global_container.paper_engine), "get_risk_metrics", lambda self, account: {"daily_pnl_pct": -0.08, "drawdown_pct": 0.15})
+    monkeypatch.setattr(type(global_container.paper_engine), "get_balance", lambda self, user, asset: 10.0 if asset == "AAPL" else 0.0)
+    assert trading.pre_trade_check("AAPL", "sell", 10.0)["allowed"]
+    buy = trading.pre_trade_check("AAPL", "buy", 1.0)
+    assert not buy["allowed"] and "add exposure" in buy["reason"]
+
+
+def test_a_live_sell_beyond_the_position_is_sized_as_a_short(monkeypatch, live):
+    class Held(FakeBroker):
+        def list_positions(self):
+            return [{"symbol": "AAPL", "qty": 5.0}]
+
+    monkeypatch.setitem(global_container.brokerages, "alpaca", Held(equity=1_000.0))
+    assert json.loads(trading.place_stock_order("AAPL", "sell", 5.0, price=100.0))["ok"]  # an exit: 50% of the account
+    payload = json.loads(trading.place_stock_order("AAPL", "sell", 20.0, price=100.0))  # 15 shares short: 150%
+    assert payload["error"]["code"] == "risk_blocked" and payload["error"]["data"]["exposure_added_units"] == 15.0
+
+
+def test_a_paper_proposal_never_executes_live(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    import app.api_server as api
+
+    monkeypatch.setattr(settings, "EXECUTION_APPROVAL_MODE", "approve_each")
+    proposal = json.loads(trading.place_market_order("AAPL", "buy", 1.0))["data"]
+    broker = FakeBroker()
+    monkeypatch.setattr(settings, "PAPER_MODE", False)
+    monkeypatch.setattr(settings, "LIVE_TRADING_ENABLED", True)
+    monkeypatch.setattr(settings, "TRADING_HALTED", False)
+    monkeypatch.setitem(global_container.brokerages, "alpaca", broker)
+    response = TestClient(api.app).post(
+        "/api/approve-trade", json={"request_id": proposal["request_id"], "confirm_token": proposal["confirm_token"], "approve": True}
+    )
+    assert response.status_code == 409 and response.json()["detail"]["code"] == "mode_mismatch"
+    assert broker.orders == []
+
+
+def test_the_pending_list_shows_the_order_but_never_the_token(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    import app.api_server as api
+
+    monkeypatch.setattr(settings, "EXECUTION_APPROVAL_MODE", "approve_each")
+    proposal = json.loads(trading.place_market_order("AAPL", "buy", 1.0))["data"]
+    pending = TestClient(api.app).get("/api/pending-approvals").json()["pending"]
+    mine = [p for p in pending if p["request_id"] == proposal["request_id"]][0]
+    assert mine["order"]["symbol"] == "AAPL" and mine["order"]["side"] == "buy" and mine["order"]["paper_mode"] is True
+    assert proposal["confirm_token"] not in json.dumps(pending)
+
+
+def test_a_web_page_elsewhere_cannot_open_the_websocket():
+    from fastapi.testclient import TestClient
+    from starlette.websockets import WebSocketDisconnect
+
+    import app.api_server as api
+
+    client = TestClient(api.app)
+    with pytest.raises(WebSocketDisconnect):
+        with client.websocket_connect("/ws", headers={"Origin": "https://evil.example"}):
+            pass
+    with client.websocket_connect("/ws", headers={"Origin": "http://localhost:3000"}):
+        pass
+
+
+def test_a_large_trade_verdict_does_not_promise_a_confirmation():
+    result = global_container.risk_guardian.validate_trade("buy", "AAPL", 8_000.0, 200_000.0)
+    assert result["allowed"] and "requires manual confirmation" not in result["reason"] and "approve_each" in result["reason"]
