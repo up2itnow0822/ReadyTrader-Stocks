@@ -1,0 +1,25 @@
+{
+  "url": "http://localhost:3002/",
+  "final_url": "http://localhost:3002/",
+  "title": "ReadyTrader | Institutional AI Stock Trading",
+  "started_at": "2026-09-24T07:37:09+0000",
+  "viewport": "390x844",
+  "actions": [],
+  "console_errors": [],
+  "console_warnings": [],
+  "page_errors": [],
+  "failed_requests": [],
+  "aborted_requests": [],
+  "http_errors": [],
+  "assertions": [
+    {
+      "type": "text",
+      "value": "Portfolio",
+      "passed": true
+    }
+  ],
+  "load_ok": true,
+  "ok": true,
+  "reason": [],
+  "note": "passed; screenshot dropped (--keep on-fail)"
+}
