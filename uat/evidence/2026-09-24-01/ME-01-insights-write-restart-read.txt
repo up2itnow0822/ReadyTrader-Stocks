@@ -7,7 +7,7 @@ CALL get_latest_insights {"symbol": "AAPL"} -> { "data": { "insights": [ { "agen
 CALL post_market_insight {"symbol": "TSLA", "agent_id": "agent-b", "signal": "sideways-ish", "confidence": 7.5, "reasoning": "x"} -> { "data": { "insight": { "agent_id": "agent-b", "confidence": 7.5, "expires_at_ms": 1790238887557, "insight_id": "f34bbaf1f3b19691", "meta": {}, "reasoning": "x", "signal": "sideways-ish", "symbol": "TSLA", "timestamp_ms": 1790235287557 } }, "ok": true }
 == session 2 (restart)
 CALL get_latest_insights {"symbol": "aapl"} -> { "data": { "insights": [ { "agent_id": "agent-a", "confidence": 0.8, "expires_at_ms": 1790238887547, "insight_id": "009ee76802a3220b", "meta": {}, "reasoning": "<b>beat</b> on services ✓ ünïcode", "signal": "bullish", "symbol": "AAPL", "timestamp_ms": 1790235287547 } ] }, "ok": true }
-CALL get_latest_insights {"symbol": ""} -> { "data": { "insights": [ { "agent_id": "agent-b", "confidence": 7.5, "expires_at_ms": 1790238887557, "insight_id": "f34bbaf1f3b19691", "meta": {}, "reasoning": "x", "signal": "sideways-ish", "symbol": "TSLA", "timestamp_ms": 1790235287557 } ] }, "ok": true }
+CALL get_latest_insights {"symbol": ""} -> { "data": { "insights": [ { "agent_id": "agent-b", "confidence": 7.5, "expires_at_ms": 1790238887557, "insight_id": "f34bbaf1f3b19691", "meta": {}, "reasoning": "x", "signal": "sideways-ish", "symbol": "TSLA", "timestamp_ms": 1790235287557 }, { "agent_id": "agent-a", "confidence": 0.8, "expires_at_ms": 1790238887547, "insight_id": "009ee76802a3220b", "meta": {}, "reasoning": "<b>beat</b> on services ✓ ünïcode", "signal": "bullish", "symbol": "AAPL", "timestamp_ms": 1790235287547 } ] }, "ok": true }
 
 
 exit=0
