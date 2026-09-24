@@ -17,6 +17,9 @@ CALL validate_trade_risk {"side": "buy", "symbol": "AAPL", "amount_usd": 2000, "
 CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 5} -> { "data": { "result": "Paper Trade Executed: BUY 5.0 AAPL @ 337.0199890136719. Value: 1685.0999450683594 USD. Rationale: stock_order_paper", "venue": "paper" }, "ok": true }
 CALL place_limit_order {"symbol": "AAPL", "side": "buy", "amount": 5, "price": 303.32} -> { "error": { "code": "limit_not_marketable", "data": { "market_price": 337.0199890136719 }, "message": "Paper mode fills marketable limit orders only: buy limit 303.32 vs market 337.02. Resting orders are not simulated."
 CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1000} -> { "error": { "code": "risk_blocked", "data": { "market": { "as_of": "2026-09-23T04:00:00Z", "bars": 40, "detail": null, "drop_pct": 0.008035, "falling_knife": false, "last_close": 337.0199890136719, "on_data_error": "all
+=== RUNBOOK commands, literally
+curl -s 127.0.0.1:8000/api/health -> {"status":"ok","mode":"paper"}
+curl -s 127.0.0.1:8000/api/pending-approvals -> {"pending":[]}
 === README example: run_backtest_simulation(code, 'AAPL', '1d') and get_market_regime('AAPL')
 CALL run_backtest_simulation {"strategy_code": "def on_candle(close, rsi, state):\n    return \"buy\" if rsi < 30 else (\"sell\" if rsi > 70 else \"hold\")\n", "symbol": "AAPL", "timeframe": "1d"} -> { "data": { "result": { "final_value": 11190.52, "initial_capital": 10000.0, "pnl": 1190.52, "pnl_percent": 11.91, "symbol": "AAPL", "total_trades": 2, "trades_log": [ { "price": 261.64776611328125, "time": "2026-01-06 05:00:00", "type": "buy" }, { "price": 29
 CALL get_market_regime {"symbol": "AAPL"} -> { "data": { "result": { "adx": 19.45, "atr_pct": 2.12, "direction": "SIDEWAYS", "regime": "VOLATILE_RANGING", "summary": "Market is VOLATILE_RANGING (SIDEWAYS). ADX: 19.5, Volatility: 2.1%" }, "symbol": "AAPL", "timeframe": "1d" }, "ok": true }
