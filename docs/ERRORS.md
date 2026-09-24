@@ -14,7 +14,7 @@ This document helps operators diagnose common issues when running ReadyTrader-St
 ## 🤖 Error Codes (Operator Guide)
 
 ### Risk & Compliance
-- `risk_blocked`: The Risk Guardian rejected the trade due to size, sentiment, or drawdown limits.
+- `risk_blocked`: The Risk Guardian rejected the trade due to size, sentiment, drawdown limits, or the price-based Falling Knife rule (see `docs/FALLING_KNIFE.md`; the error data carries the `market` reading).
 - `pdt_violation`: Pattern Day Trader protection triggered for an account under $25k.
 - `price_collar_violation`: Price is too far (>5%) from the last known close.
 
