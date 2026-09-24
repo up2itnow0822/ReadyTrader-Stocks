@@ -42,8 +42,9 @@ def steady_paper_metrics(monkeypatch):
         monkeypatch.setattr(
             type(engine),
             "get_risk_metrics",
-            lambda self, account: {"equity": 100000.0, "daily_pnl_pct": 0.0, "drawdown_pct": 0.0},
+            lambda self, account: {"daily_pnl_pct": 0.0, "drawdown_pct": 0.0},
         )
+        monkeypatch.setattr(type(engine), "get_portfolio_value_usd", lambda self, account: 100000.0)
 
 
 @pytest.fixture
@@ -430,7 +431,7 @@ def approvals(monkeypatch, quiet_ledger):
 
 
 def propose(side):
-    payload = json.loads(trading.place_stock_order(SYMBOL, side, 10.0, price=25.0))
+    payload = json.loads(trading.place_stock_order(SYMBOL, side, 10.0))  # a market order
     assert payload["data"]["status"] == "pending_approval", payload
     return payload["data"]
 
@@ -479,6 +480,6 @@ def test_the_recheck_uses_the_proposals_sentiment_reading(monkeypatch, approvals
         return real(*args, **kwargs)
 
     monkeypatch.setattr(guardian, "validate_trade", spy)
-    payload = json.loads(trading.place_stock_order(SYMBOL, "buy", 10.0, price=25.0, sentiment_score=-0.4))
+    payload = json.loads(trading.place_stock_order(SYMBOL, "buy", 10.0, sentiment_score=-0.4))
     assert approve(client, payload["data"]).status_code == 200
     assert seen == [-0.4, -0.4]  # at proposal and again at approval
