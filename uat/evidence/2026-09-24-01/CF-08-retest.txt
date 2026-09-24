@@ -1,0 +1,13 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/wizard_env.sh
+# at 2026-09-24T08:23:26+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+  [✓] alpaca
+Checking Critical Keys in .env...
+  [-] ALPACA_API_KEY not set (only needed for live trading).
+  [-] ALPACA_API_SECRET not set (only needed for live trading).
+  [-] TRADIER_ACCESS_TOKEN not set (only needed for live trading).
+--- the MCP server with that .env: news tool
+CALL get_financial_news {"symbol": "AAPL"} -> { "error": { "code": "not_configured", "data": { "symbol": "AAPL" }, "message": "Financial News: NEWSAPI_KEY missing or NewsApiClient not installed. (Zero-Mock Policy)." }, "ok": false }
+
+
+exit=0

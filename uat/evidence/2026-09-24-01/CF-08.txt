@@ -1,0 +1,13 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/wizard_env.sh
+# at 2026-09-24T08:19:13+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+  [✓] alpaca
+Checking Critical Keys in .env...
+  [✓] ALPACA_API_KEY detected.
+  [✓] ALPACA_API_SECRET detected.
+  [✓] TRADIER_ACCESS_TOKEN detected.
+--- the MCP server with that .env: news tool
+CALL get_financial_news {"symbol": "AAPL"} -> { "data": { "financial_news": "NewsAPI Error: {'status': 'error', 'code': 'apiKeyInvalid', 'message': 'Your API key is invalid or incorrect. Check your key, or go to https://newsapi.org to create a free API key.'}", "symbol": "AAPL" }, "ok": true }
+
+
+exit=0

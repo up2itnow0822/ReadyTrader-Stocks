@@ -1,0 +1,9 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks && for ap in unset true false; do if [ $ap = unset ]; then env -u ALPACA_PAPER PAPER_MODE=false ALPACA_API_KEY=PKTEST ALPACA_API_SECRET=x .venv/bin/python -W ignore /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/alpaca_probe.py 2>/dev/null; else ALPACA_PAPER=$ap PAPER_MODE=false ALPACA_API_KEY=PKTEST ALPACA_API_SECRET=x .venv/bin/python -W ignore /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/alpaca_probe.py 2>/dev/null; fi; done
+# at 2026-09-24T08:17:50+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+PAPER_MODE='false' ALPACA_PAPER=None -> live-path Alpaca endpoint: BaseURL.TRADING_LIVE
+PAPER_MODE='false' ALPACA_PAPER='true' -> live-path Alpaca endpoint: BaseURL.TRADING_LIVE
+PAPER_MODE='false' ALPACA_PAPER='false' -> live-path Alpaca endpoint: BaseURL.TRADING_LIVE
+
+
+exit=0
