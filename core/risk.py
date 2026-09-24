@@ -16,7 +16,8 @@ class RiskGuardian:
                       force_approval: bool = False,
                       price: Optional[float] = None,
                       last_close_price: Optional[float] = None,
-                      day_trades_count: int = 0) -> Dict[str, Any]:
+                      day_trades_count: int = 0,
+                      market: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Validate a trade against safety rules.
         """
@@ -58,6 +59,22 @@ class RiskGuardian:
                 "reason": "Guardian blocked BUY due to Extreme Bearish sentiment (Falling Knife protection)."
             }
             
+        # Rule 2b: Falling Knife (price). `market` is a core/market_guard.py reading prepared by the
+        # tools layer. A BUY is blocked while the stock is still falling after a large drop, and -
+        # when the operator requires the check - while the check cannot run.
+        if side.lower() == 'buy' and market:
+            if market.get("falling_knife"):
+                return {"allowed": False, "reason": _knife_reason(symbol, market)}
+            if market.get("required") and market.get("status") not in ("ok", "disabled"):
+                return {
+                    "allowed": False,
+                    "reason": (
+                        f"Falling Knife check could not run for {symbol} "
+                        f"({market.get('detail') or market.get('status')}); BUYs are blocked until it can. "
+                        "Set MARKET_GUARD_ON_DATA_ERROR=allow to override."
+                    ),
+                }
+
         # Rule 3: Price Collar (Fat-finger protection - SEC Rule 15c3-5)
         if last_close_price and price:
             deviation = abs(price - last_close_price) / last_close_price
@@ -85,3 +102,15 @@ class RiskGuardian:
             "needs_confirmation": needs_confirmation,
             "reason": "Trade looks safe but requires manual confirmation." if needs_confirmation else "Trade looks safe."
         }
+
+
+def _knife_reason(symbol: str, market: Dict[str, Any]) -> str:
+    drop = market.get("drop_pct") or 0.0
+    peak = market.get("peak_close")
+    last = market.get("last_close")
+    window = (market.get("rule") or {}).get("window_bars", 4)
+    return (
+        f"Guardian blocked BUY: {symbol} is down {drop:.1%} from its highest close of the last "
+        f"{window} sessions ({peak:.2f} -> {last:.2f}) and is still at the lowest close of that "
+        "window (Falling Knife protection, price)."
+    )

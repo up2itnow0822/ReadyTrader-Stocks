@@ -54,6 +54,17 @@ class ExchangeProvider:
         """
         return symbol.strip().upper()
 
+    def _history(self, sym: str, **kwargs: Any) -> pd.DataFrame:
+        """
+        yfinance history for `sym`. Brokers write share classes with a dot (BRK.B) and Yahoo with a
+        dash (BRK-B); a dotted symbol with no data is retried in Yahoo's form. Exchange suffixes
+        that Yahoo writes with a dot (SHOP.TO) still resolve on the first try.
+        """
+        df = yf.Ticker(sym).history(**kwargs)
+        if df.empty and "." in sym:
+            df = yf.Ticker(sym.replace(".", "-")).history(**kwargs)
+        return df
+
     def get_marketdata_capabilities(self, exchange_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Return capability info.
@@ -99,8 +110,7 @@ class ExchangeProvider:
             if timeframe == '1d':
                 period = "1y"
 
-            ticker = yf.Ticker(sym)
-            df = ticker.history(period=period, interval=yf_interval)
+            df = self._history(sym, period=period, interval=yf_interval)
             
             if df.empty:
                 raise AppError("data_not_found", f"No OHLCV history found for {sym} via yfinance.", {"symbol": sym})
@@ -137,8 +147,7 @@ class ExchangeProvider:
             return cached
 
         try:
-            ticker = yf.Ticker(sym)
-            hist = ticker.history(period="5d")
+            hist = self._history(sym, period="5d")
             
             if hist.empty:
                 raise AppError("data_not_found", f"No price data found for {sym} via yfinance.", {"symbol": sym})
