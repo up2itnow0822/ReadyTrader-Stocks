@@ -1,0 +1,10 @@
+$ bash -c 'cd frontend/src && grep -rn "Paper Mode\|REAL<span\|Review</button\|localhost:8000/api/portfolio" .'
+# at 2026-09-24T07:30:48+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+./app/page.tsx:27:      const res = await fetch('http://localhost:8000/api/portfolio');
+./app/page.tsx:112:steps<button className="btn btn-primary compact">Review</button>
+./app/layout.tsx:21:              <span className="logo-text">REAL<span>TRADER</span></span>
+./app/layout.tsx:33:                <span className="status-pill paper">Paper Mode</span>
+
+
+exit=0
