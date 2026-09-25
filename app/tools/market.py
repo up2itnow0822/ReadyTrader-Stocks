@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 from fastmcp import FastMCP
 
 from app.core.container import global_container
+from app.tools.params import Integer
 
 
 def _json_ok(data: Dict[str, Any] | None = None) -> str:
@@ -44,7 +45,7 @@ def _iso(ts: Any) -> str:
     return str(ts)
 
 
-def fetch_ohlcv(symbol: str, timeframe: str = '1d', limit: int = 100) -> str:
+def fetch_ohlcv(symbol: str, timeframe: str = '1d', limit: Integer = 100) -> str:
     """Fetch historical OHLCV candlestick data for technical analysis."""
     try:
         df = global_container.backtest_engine.fetch_ohlcv(symbol, timeframe, limit)

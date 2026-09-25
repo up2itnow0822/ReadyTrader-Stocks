@@ -4,6 +4,7 @@ from typing import Any, Dict
 from fastmcp import FastMCP
 
 from app.core.container import global_container
+from app.tools.params import Integer, Number
 from core.stress_test import run_synthetic_stress_test as _run_stress
 
 
@@ -20,7 +21,7 @@ def _json_err(code: str, message: str, data: Dict[str, Any] | None = None) -> st
 SIGNALS = ("bullish", "bearish", "neutral")
 
 
-def post_market_insight(symbol: str, agent_id: str, signal: str, confidence: float, reasoning: str, ttl_seconds: int = 3600) -> str:
+def post_market_insight(symbol: str, agent_id: str, signal: str, confidence: Number, reasoning: str, ttl_seconds: Integer = 3600) -> str:
     """Share a market insight with other agents: `signal` is bullish, bearish or neutral, `confidence` 0.0-1.0."""
     if str(signal).strip().lower() not in SIGNALS:
         return _json_err("invalid_request", f"signal must be one of {', '.join(SIGNALS)}, got {signal!r}")

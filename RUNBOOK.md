@@ -23,7 +23,10 @@ Every setting is read when a process starts, so **restart both processes after c
 #### Kill switch (live trading)
 - Set `TRADING_HALTED=true` (any value other than empty, `false`, `0`, `no` or `off` halts) and
   restart both processes. Every live order, and every approval of one, is then refused with
-  `trading_halted`. Paper trading is unaffected.
+  `trading_halted`, closing orders included: flatten positions at the brokerage (web or app). The
+  switch cancels nothing at the broker. Alpaca orders never wait there (they are sent only while
+  the market is open, as `IOC`; a fractional market order goes out `DAY`); at the other brokerages a
+  limit order can rest, so cancel open orders there too. Paper trading is unaffected.
 - To stop live trading entirely, set `PAPER_MODE=true` or `LIVE_TRADING_ENABLED=false` and restart.
 
 #### Approve trades (`EXECUTION_APPROVAL_MODE=approve_each`)
@@ -59,8 +62,13 @@ Every setting is read when a process starts, so **restart both processes after c
   - `Position size too large`: the part of the order that opens or adds to a position is more than
     5% of the account's equity (paper equity, or the brokerage's reported equity in live mode).
     Selling out of a position is never refused by this rule. Reduce the size.
-  - `Daily Loss Limit Hit` / `Max Drawdown`: the account lost 5% today or is 10% below its peak;
-    orders that add exposure resume when the condition clears; selling out is always allowed.
+  - `Daily Loss Limit Hit` / `Max Drawdown`: the paper account lost 5% today or is 10% below its
+    best result (deposits are neither gains nor a way out). "Today" starts from the account's last
+    recorded value of the previous UTC day (a trade, a deposit or the first check of a day records
+    one), else its first value today: a move after a day's last record counts toward the next day's
+    loss too, which errs toward halting; orders that add exposure resume when the
+    condition clears; selling out is always allowed. Live orders do not run these two rules (the
+    brokerage account has no loss history here): `inactive_rules` in the check says so.
   - Falling Knife: the stock fell 15%+ over four closes and is still falling; see
     `docs/FALLING_KNIFE.md`.
   - `account's equity` / cannot be priced: the check could not read the account or the price, so
@@ -87,6 +95,12 @@ Every setting is read when a process starts, so **restart both processes after c
   `MAX_ORDER_AMOUNT` is not a number; every live order is refused until it is fixed or unset.
 - **Mitigation**: adjust `ALLOW_TICKERS`, `ALLOW_BROKERAGES` or `MAX_ORDER_AMOUNT` and restart.
   Keep `EXECUTION_APPROVAL_MODE=approve_each` while validating a new configuration.
+
+### Upgrading a Docker data volume
+- Images before this release ran as root; this one runs as `readytrader` (uid 10001), which cannot
+  write files a root container left in an existing volume (the server stops at start-up with
+  `attempt to write a readonly database`). Hand the volume to the new user once, then start as usual:
+  `docker run --rm --user 0 -v readytrader-stocks-data:/app/data --entrypoint chown readytrader-stocks -R 10001:10001 /app/data`
 
 ### Backup/restore (paper mode)
 - The paper ledger is `data/paper.db` (`PAPER_DB_PATH`; ignored by git). Back it up by copying the
