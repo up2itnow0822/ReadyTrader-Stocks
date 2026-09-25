@@ -3,7 +3,7 @@ $ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpa
 
 --- invalid keys
 CALL get_financial_news {"symbol": "AAPL"} -> { "data": { "financial_news": "NewsAPI Error: {'status': 'error', 'code': 'apiKeyInvalid', 'message': 'Your API key is invalid or incorrect. Check your key, or go to https://newsapi.org to create a free API key.'}", "symbol": "AAPL" }, "ok": true }
-CALL get_market_news {"symbol": "AAPL"} -> { "data": { "news": "Alpha Vantage news:\n1. ‘A phone is unique to you, it’s not going anywhere’: Qualcomm CEO’s big bet on Agentic AI as company unveils new mobile chips (The Indian Express)\n2. Form 8K Bio-Techne Corp For: 23 September By
+CALL get_market_news {"symbol": "AAPL"} -> { "data": { "news": "Alpha Vantage news:\n1. \\u2018A phone is unique to you, it\\u2019s not going anywhere\\u2019: Qualcomm CEO\\u2019s big bet on Agentic AI as company unveils new mobile chips (The Indian Express)\n2. Form 8K Bio-Techne Corp For: 23 September By
 --- no keys
 CALL get_financial_news {"symbol": "AAPL"} -> { "data": { "financial_news": "Financial News: NEWSAPI_KEY missing or NewsApiClient not installed. (Zero-Mock Policy).", "symbol": "AAPL" }, "ok": true }
 CALL get_market_news {"symbol": "AAPL"} -> { "data": { "news": "Market News: ALPHAVANTAGE_API_KEY missing. News unavailable.", "symbol": "AAPL" }, "ok": true }

@@ -13,3 +13,6 @@ listing on an exchange in another time zone can read as stale during US hours.
   - `Daily Loss Limit Hit` / `Max Drawdown`: the paper account lost 5% today or is 10% below its
     best result (deposits are neither gains nor a way out); orders that add exposure resume when the
     condition clears; selling out is always allowed. Live orders do not run these two rules (the
+
+
+exit=0

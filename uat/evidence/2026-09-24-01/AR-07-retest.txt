@@ -14,6 +14,8 @@ refused  deposit_paper_funds.amount=true -> 1 validation error for call[deposit_
 refused  validate_trade_risk.amount_usd=true -> 1 validation error for call[validate_trade_risk] amount_usd Value error, a number is required, not true/false 
 refused  validate_trade_risk.portfolio_value=true -> 1 validation error for call[validate_trade_risk] portfolio_value Value error, a number is required, not true/f
 refused  validate_trade_risk.sentiment_score=true -> 1 validation error for call[validate_trade_risk] sentiment_score Value error, a number is required, not true/f
+refused  post_market_insight.confidence=true -> 1 validation error for call[post_market_insight] confidence Value error, a number is required, not true/false 
+refused  post_market_insight.ttl_seconds=true -> 1 validation error for call[post_market_insight] ttl_seconds Value error, a number is required, not true/false
 numeric parameters: 15; true refused: 15; true accepted: 0
 
 
