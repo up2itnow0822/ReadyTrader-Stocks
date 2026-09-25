@@ -7,8 +7,11 @@ from fastmcp import FastMCP
 from app.core.compliance import global_compliance_ledger
 from app.core.config import settings
 from app.core.container import global_container
+from app.tools.params import Number
 from core import market_guard
+from core.paper import CASH_ASSETS
 from core.policy import PolicyError
+from execution.base import MarketClosed
 from intelligence import get_cached_sentiment
 
 
@@ -75,6 +78,54 @@ def _invalid_order(side: Any, **amounts: Any) -> Optional[str]:
     return None
 
 
+def _invalid_sentiment(sentiment_score: Any) -> Optional[str]:
+    """None is allowed (unset). A NaN or infinite score used to read as +1.0, the most bullish."""
+    if sentiment_score is None:
+        return None
+    try:
+        number = float(sentiment_score)
+    except (TypeError, ValueError):
+        return f"sentiment_score must be a number on [-1, +1], got {sentiment_score!r}"
+    if not math.isfinite(number):
+        return f"sentiment_score must be a finite number on [-1, +1], got {sentiment_score!r}"
+    return None
+
+
+def _invalid_symbol(symbol: Any) -> Optional[str]:
+    """Why a ticker cannot be traded here, or None. The paper ledger keys cash by USD and splits
+    symbols on '/', so a ticker spelled like a cash asset (the ETF 'USD') or with a slash ('BRK/B')
+    would trade against the cash balance or a phantom pair."""
+    s = str(symbol or "").strip().upper()
+    if not s:
+        return "symbol must be a ticker such as AAPL"
+    if "/" in s:
+        return f"{symbol!r} is not a stock ticker; class shares use a dot (BRK.B)"
+    if settings.PAPER_MODE and s in CASH_ASSETS:
+        return f"{s} is the paper ledger's cash asset and cannot be paper traded as a ticker"
+    return None
+
+
+def _mark_paper_prices() -> None:
+    """Mark the paper account's holdings to the latest price, so its value, the size rule and the
+    loss limits read today's prices rather than the last fill (a held position that fell 20% since
+    used to read as flat)."""
+    engine = global_container.paper_engine
+    for asset in engine.get_balances("agent_zero"):
+        last = None if asset.upper() in CASH_ASSETS else _latest_quote(asset)
+        if last is not None:
+            engine.mark_price_usd(asset, last)
+    engine.mark_day_open("agent_zero")
+
+
+def _latest_quote(symbol: str) -> Optional[float]:
+    """The latest quote's last price, or None when it cannot be read (never invented)."""
+    try:
+        last = float(global_container.exchange_provider.fetch_ticker(symbol).get("last") or 0.0)
+    except Exception:
+        return None
+    return last if math.isfinite(last) and last > 0 else None
+
+
 def _invalid_order_type(order_type: Any, price: Any) -> Optional[str]:
     """Why an order type / limit price pair is malformed, or None. An unknown type or a limit with
     no price used to fill at the market price on paper."""
@@ -127,7 +178,7 @@ def _market_context(symbol: str, side: str) -> Dict[str, Any]:
 
 
 def place_market_order(
-    symbol: str, side: str, amount: float, rationale: str = "", sentiment_score: float | None = None
+    symbol: str, side: str, amount: Number, rationale: str = "", sentiment_score: Number | None = None
 ) -> str:
     """
     Place a market order for a stock.
@@ -135,6 +186,9 @@ def place_market_order(
     `sentiment_score` is your own reading on [-1, +1] (see validate_trade_risk); below -0.5 the
     sentiment rule blocks a BUY. Left unset, sentiment is neutral. Independently, every BUY is
     checked against recent daily closes (Falling Knife, price) - see validate_trade_risk.
+    Live Alpaca orders are sent only while the market is open and fill now or not
+    at all (IOC; a fractional market order goes out DAY, a fractional limit is refused); the answer
+    reports what filled (`filled_qty`).
     """
     return place_stock_order(
         symbol, side, amount, order_type="market", rationale=rationale, sentiment_score=sentiment_score
@@ -142,7 +196,7 @@ def place_market_order(
 
 
 def place_limit_order(
-    symbol: str, side: str, amount: float, price: float, rationale: str = "", sentiment_score: float | None = None
+    symbol: str, side: str, amount: Number, price: Number, rationale: str = "", sentiment_score: Number | None = None
 ) -> str:
     """
     Place a limit order for a stock.
@@ -150,20 +204,36 @@ def place_limit_order(
     `sentiment_score` is your own reading on [-1, +1] (see validate_trade_risk); below -0.5 the
     sentiment rule blocks a BUY. Left unset, sentiment is neutral. Independently, every BUY is
     checked against recent daily closes (Falling Knife, price) - see validate_trade_risk.
+    Live Alpaca orders are sent only while the market is open and fill now or not
+    at all (IOC; a fractional market order goes out DAY, a fractional limit is refused); the answer
+    reports what filled (`filled_qty`).
     """
     return place_stock_order(
         symbol, side, amount, price=price, order_type="limit", rationale=rationale, sentiment_score=sentiment_score
     )
 
 
-def deposit_paper_funds(asset: str, amount: float) -> str:
+def deposit_paper_funds(asset: str, amount: Number) -> str:
     """[PAPER MODE] Deposit virtual funds (USD, or shares of a ticker) into the paper trading account."""
     if not settings.PAPER_MODE:
         return _json_err("invalid_mode", "Deposits only available in paper mode.")
     problem = _invalid_order("buy", amount=amount)
     if problem or not str(asset).strip():
         return _json_err("invalid_request", problem or "asset must be non-empty (USD or a ticker)")
-    res = global_container.paper_engine.deposit("agent_zero", asset.strip().upper(), float(amount))
+    asset = asset.strip().upper()
+    engine = global_container.paper_engine
+    if asset not in CASH_ASSETS:
+        # Shares deposited are capital added, valued at today's price. Unvalued, they would read as a
+        # trading gain once priced (and could end a drawdown halt), so the deposit waits for a price.
+        last = _latest_quote(asset)
+        if last is None:
+            return _json_err(
+                "paper_price_required",
+                f"No market price for {asset}: a paper deposit of shares is valued at the market price. Deposit USD, or retry.",
+                {"asset": asset},
+            )
+        engine.mark_price_usd(asset, float(last))
+    res = engine.deposit("agent_zero", asset, float(amount))
     return _json_ok({"message": res})
 
 
@@ -176,7 +246,7 @@ def reset_paper_wallet() -> str:
 
 
 def validate_trade_risk(
-    side: str, symbol: str, amount_usd: float, portfolio_value: float, sentiment_score: float | None = None
+    side: str, symbol: str, amount_usd: Number, portfolio_value: Number, sentiment_score: Number | None = None
 ) -> str:
     """
     Verify if a trade complies with risk policies and current market conditions.
@@ -193,7 +263,7 @@ def validate_trade_risk(
     close of the last four sessions. This check reads recent daily bars (cached for up to a minute).
     `sentiment.source` is "agent_supplied" or "unmeasured" - never a measurement by this server.
     """
-    problem = _invalid_order(side, amount_usd=amount_usd, portfolio_value=portfolio_value)
+    problem = _invalid_order(side, amount_usd=amount_usd, portfolio_value=portfolio_value) or _invalid_sentiment(sentiment_score)
     if problem:
         return _json_err("invalid_request", problem)
     try:
@@ -203,6 +273,7 @@ def validate_trade_risk(
         drawdown = 0.0
 
         if settings.PAPER_MODE:
+             _mark_paper_prices()
              metrics = global_container.paper_engine.get_risk_metrics("agent_zero")
              daily_loss = metrics.get('daily_pnl_pct', 0.0)
              drawdown = metrics.get('drawdown_pct', 0.0)
@@ -237,19 +308,31 @@ def pre_trade_check(
     price: float = 0.0,
     sentiment_score: float | None = None,
     exchange: str = "alpaca",
+    order_type: str = "market",
 ) -> Dict[str, Any]:
     """
     The Risk Guardian check an order must pass, with fresh market data: {allowed, reason,
-    sentiment, market}. place_stock_order runs it before anything is proposed or executed, and
-    the approval API (app/api_server.py) runs it again at execution time, because a proposal can
-    wait up to its expiry while the market moves.
+    sentiment, market, reference_price, market_price, position_units, exposure_added_units,
+    inactive_rules}. place_stock_order runs it before anything is proposed or executed, and the
+    approval API (app/api_server.py) runs it again at execution time, because a proposal can wait
+    up to its expiry while the market moves.
+
+    The order is valued at the market price, never at a price the caller supplies alone: a market
+    order at the market, a limit order at the higher of its limit and the market. Without a market
+    price, an order that adds exposure is refused. The daily-loss and drawdown rules read the paper
+    account; a live brokerage account has no loss history here, so live orders report those two
+    in `inactive_rules`.
     """
     daily_loss = 0.0
     drawdown = 0.0
+    inactive_rules: List[str] = []
+    symbol = str(symbol or "").strip().upper()
+    side = str(side or "").strip().lower()
     sentiment = _sentiment_context(symbol, sentiment_score)
     market = _market_context(symbol, side)
     if settings.PAPER_MODE:
         engine = global_container.paper_engine
+        _mark_paper_prices()
         metrics = engine.get_risk_metrics("agent_zero")
         # The account the order is sized against. get_risk_metrics has no "equity" key, so this
         # read a flat 100,000 for every account: a 1,000 account could put 5,000 on one trade.
@@ -260,16 +343,23 @@ def pre_trade_check(
         drawdown = metrics.get('drawdown_pct', 0.0)
     else:
         portfolio_value = _live_equity(exchange)
+        inactive_rules = ["daily_loss_limit", "max_drawdown"]
 
     market_price = _market_price(symbol, market)
-    reference_price = float(price) if price and price > 0 else market_price
+    limit = None
+    if str(order_type or "market").strip().lower() == "limit":
+        try:
+            limit = float(price) if price and math.isfinite(float(price)) and float(price) > 0 else None
+        except (TypeError, ValueError):
+            limit = None
+    reference_price = (max(market_price, limit) if limit else market_price) if market_price else None
     # Selling out of a long is an exit, not new exposure; only what an order adds is sized.
     position = _position_units(symbol, exchange)
     added = exposure_added(side.lower(), amount, position)
     increases_exposure = added > 0
     refusal = None
     if reference_price is None:
-        refusal = f"Could not price {symbol} for the position-size check; pass a limit price or retry."
+        refusal = f"No market price for {symbol}: orders are valued at the market for the position-size check; retry when market data is available."
     elif portfolio_value is None:
         refusal = f"Could not read the {exchange} account's equity for the position-size check."
     risk_result = global_container.risk_guardian.validate_trade(
@@ -298,6 +388,7 @@ def pre_trade_check(
         "market_price": market_price,
         "position_units": position,
         "exposure_added_units": added,
+        "inactive_rules": inactive_rules,
     }
 
 
@@ -422,13 +513,13 @@ def live_order_refusal(
 def place_stock_order(
     symbol: str,
     side: str,
-    amount: float,
-    price: float = 0.0,
+    amount: Number,
+    price: Number = 0.0,
     order_type: str = "market",
     exchange: str = "alpaca",
     rationale: str = "",
     audit_context: str = "",
-    sentiment_score: float | None = None
+    sentiment_score: Number | None = None
 ) -> str:
     """
     Place a stock order through the Risk Guardian, on paper or at a brokerage (`exchange`:
@@ -438,27 +529,50 @@ def place_stock_order(
     reading on [-1, +1] (see validate_trade_risk); below -0.5 the sentiment rule blocks a BUY.
     Independently, every BUY is checked against recent daily closes (Falling Knife, price). With
     EXECUTION_APPROVAL_MODE=approve_each the order is returned as a pending proposal instead.
+    Live Alpaca orders are sent only while the market is open and fill now or not
+    at all (IOC; a fractional market order goes out DAY, a fractional limit is refused); the answer
+    reports what filled (`filled_qty`).
     """
-    problem = _invalid_order(side, amount=amount) or _invalid_order_type(order_type, price)
+    problem = (
+        _invalid_order(side, amount=amount)
+        or _invalid_order_type(order_type, price)
+        or _invalid_symbol(symbol)
+        or _invalid_sentiment(sentiment_score)
+    )
     if problem:
         return _json_err("invalid_request", problem)
+    symbol = symbol.strip().upper()
     side = side.strip().lower()
     order_type = order_type.strip().lower()
+    # A market order fills at the market whatever price it carries: the price is dropped, so it can
+    # neither size the order nor reach a proposal or the brokerage (a NaN there broke the API).
+    price = float(price) if order_type == "limit" else 0.0
+    # Compliance record: every well-formed order request, including one the switches refuse (those
+    # are the attempts an operator reviews after a halt).
+    global_compliance_ledger.record_event("trade_start", {
+        "symbol": symbol, "side": side, "amount": amount, "rationale": rationale, "audit_context": audit_context
+    })
     if not settings.PAPER_MODE:
+        # The operator's switches answer first: with the kill switch set, "halted" is the answer,
+        # whatever else is wrong with the order or the brokerage's configuration.
+        switch = live_execution_refusal()
+        if switch:
+            return _json_err(switch["code"], switch["message"])
         ex = (exchange or "").strip().lower()
         if ex not in global_container.brokerages:
             return _json_err("brokerage_not_supported", f"Brokerage {exchange} not found.")
         if not global_container.brokerages[ex].is_available():
             return _json_err("brokerage_not_configured", f"{exchange} keys are missing. Cannot execute a live order.")
-
-    # Compliance Record
-    global_compliance_ledger.record_event("trade_start", {
-        "symbol": symbol, "side": side, "amount": amount, "rationale": rationale, "audit_context": audit_context
-    })
+        # A brokerage that knows its market is closed says so before anything is proposed or sent
+        # (Alpaca: an order would wait for the open, past every check).
+        closed = getattr(global_container.brokerages[ex], "market_closed_reason", None)
+        reason = closed() if callable(closed) else None
+        if reason:
+            return _json_err("market_closed", reason)
 
     # Risk Guardian Check
     try:
-        check = pre_trade_check(symbol, side, amount, price, sentiment_score, exchange)
+        check = pre_trade_check(symbol, side, amount, price, sentiment_score, exchange, order_type)
         if not check["allowed"]:
             return _json_err(
                 "risk_blocked",
@@ -468,6 +582,8 @@ def place_stock_order(
                     "market": check["market"],
                     "position_units": check["position_units"],
                     "exposure_added_units": check["exposure_added_units"],
+                    "reference_price": check["reference_price"],
+                    "inactive_rules": check["inactive_rules"],
                 },
             )
 
@@ -529,6 +645,8 @@ def place_stock_order(
             return _json_err("brokerage_not_configured", f"{exchange} keys are missing. Cannot execute a live order.")
         res = brokerage.place_order(symbol=symbol, side=side, qty=amount, order_type=order_type, price=price if price > 0 else None)
         return _json_ok({"venue": ex, "result": res})
+    except MarketClosed as e:
+        return _json_err("market_closed", str(e))
     except Exception as e:
         return _json_err("execution_error", str(e))
 
