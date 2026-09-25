@@ -1,0 +1,17 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/alpaca_tif.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks 2>&1 | tail -8; grep -n 'TimeInForce\.' execution/alpaca_service.py; grep -n 'Cancel, amend\|kill switch' docs/EXCHANGES.md docs/THREAT_MODEL.md RUNBOOK.md | cut -c1-200
+# at 2026-09-24T21:57:15+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+== market open
+  market BUY 10 AAPL -> submitted: type=market time_in_force=gtc
+  limit  BUY 10 AAPL -> submitted: type=limit time_in_force=gtc limit=180.0
+== market CLOSED
+  market BUY 10 AAPL -> submitted: type=market time_in_force=gtc
+  limit  BUY 10 AAPL -> submitted: type=limit time_in_force=gtc limit=180.0
+62:                    time_in_force=TimeInForce.GTC
+71:                    time_in_force=TimeInForce.GTC,
+docs/EXCHANGES.md:10:the Risk Guardian (sized against the brokerage's reported equity), the kill switch and the live
+docs/EXCHANGES.md:41:- Cancel, amend or list brokerage orders, or list positions: manage those with the brokerage.
+RUNBOOK.md:34:  agent received the `confirm_token` with the proposal. The Risk Guardian, the kill switch and the
+
+
+exit=0

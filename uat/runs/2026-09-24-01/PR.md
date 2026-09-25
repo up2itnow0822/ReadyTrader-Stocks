@@ -1,4 +1,4 @@
-## UAT run `2026-09-24-01` — ready for release review (2 items blocked on credentials / Docker)
+## UAT run `2026-09-24-01` — ready for release review (1 item blocked on brokerage credentials)
 
 Acting as the user, exercised every surface of ReadyTrader-Stocks end to end (MCP server over stdio,
 approval API, dashboard, CLI scripts, config, docs, registry manifest), fixed every failure on this
@@ -8,20 +8,20 @@ brokerage stubs only; no live order was placed.
 **Stacked on #3** (`feat/market-falling-knife`, the price-based Falling Knife). Review and merge #3
 first; this PR's diff is the UAT work on top of it.
 
-**Totals:** 81 checks · 20 pass · 59 fail (59 fixed & verified) · 2 blocked · 385 tests pass, ruff and bandit clean, dashboard builds.
+**Totals:** 109 checks · 25 pass · 83 fail (83 fixed & verified) · 1 blocked · 409 tests pass, ruff and bandit clean, dashboard lints and builds.
 
 | Section | Pass | Fail | Verified fixed | Blocked |
 |---|---|---|---|---|
-| preflight | 2 | 8 | 8 | 0 |
-| backend | 8 | 23 | 23 | 0 |
-| data | 1 | 2 | 2 | 0 |
+| preflight | 3 | 8 | 8 | 0 |
+| backend | 8 | 33 | 33 | 0 |
+| data | 1 | 6 | 6 | 0 |
 | memory | 1 | 1 | 1 | 0 |
-| frontend | 2 | 6 | 6 | 0 |
-| integrations | 2 | 2 | 2 | 1 |
+| frontend | 2 | 7 | 7 | 0 |
+| integrations | 2 | 6 | 6 | 1 |
 | cli | 1 | 3 | 3 | 0 |
-| config | 1 | 8 | 8 | 0 |
-| docs | 0 | 6 | 6 | 1 |
-| regression | 3 | 0 | 0 | 0 |
+| config | 1 | 11 | 11 | 0 |
+| docs | 1 | 8 | 8 | 0 |
+| regression | 5 | 0 | 0 | 0 |
 
 ### What was broken and is now fixed
 - **critical** PRE-03 — Fresh install can import the MCP server (python app/main.py) → Pin mcp>=1.24.0,<2 in requirements.txt (`845e972`)
@@ -82,38 +82,4 @@ the same changes in fewer commits (the GitHub connector used here writes whole t
 The same probes run against ReadyTrader-FOREX, and an independent review of that run, found defects
 that also existed here. Each was captured here first, then fixed and retested:
 - **high** BE-30 — Selling out of a position is never sized as new exposure → orders are judged by the exposure they add (paper ledger / brokerage positions); selling out passes the size, daily-loss and drawdown rules; selling beyond a live position (a short) is sized (`5fb2edf`)
-- **high** BE-32 — A proposal executes in the mode it was proposed in → proposals record paper_mode; the approval API refuses the other mode (409 `mode_mismatch`) (`5fb2edf`)
-- **medium** FE-07 — The dashboard is readable at phone width (390x844) → below 900 px the sidebar becomes a top bar and the grid one column (`fb843a5`)
-- **medium** FE-08 — The operator can see what a proposal is before approving it, and can reject it → the pending list carries each order (never the token); the Guard Rail shows it with Approve and Reject (`5fb2edf`)
-- **low** BE-29 — Approval errors → unknown proposal 404, wrong token 403, no longer approvable 409 (`d9d65b6`)
-- **low** BE-31 — The large-trade verdict no longer promises a confirmation nothing asks for (`5fb2edf`)
-- **low** BE-33 — The API's WebSocket answers only the dashboard's origins (`5fb2edf`)
-- **low** CF-09 — A malformed setting that nothing applies (`CIRCUIT_BREAKER_PCT`, `RATE_LIMIT_DEFAULT_PER_MIN`) no longer stops the server (`491e203`)
-- **low** CL-04 — The setup wizard treats a closed stdin as no answer instead of crashing (`03bdc44`)
-
-### Still blocked (needs the owner)
-- **IN-02** live brokerage round trip: needs Alpaca **paper-account** keys (`ALPACA_API_KEY`, `ALPACA_API_SECRET`). With `ALPACA_PAPER=true` (now the default) the whole live path can be exercised with no real money: set `PAPER_MODE=false`, `LIVE_TRADING_ENABLED=true`, `EXECUTION_APPROVAL_MODE=approve_each`.
-- **DOC-02** `docker build` / `docker run`: needs a machine with a Docker daemon. The build context and the Dockerfile's commands were checked without one (DOC-03, DOC-07).
-- **Repo setting**: SECURITY.md now points reporters at GitHub private vulnerability reporting; switch it on under Settings → Code security if it is off (not visible from here).
-
-### Review these fixes with extra care
-- **Trading gates** (`app/tools/trading.py`, `app/api_server.py`, `core/policy.py`, `common/switches.py`): `live_order_refusal` now runs at proposal and at execution; `TRADING_HALTED`, `PAPER_MODE`, `EXECUTION_APPROVAL_MODE` and `MAX_ORDER_AMOUNT` parsing all fail closed (BE-02, BE-23, CF-03, CF-04, CF-05).
-- **Brokerage endpoints** (`execution/alpaca_service.py`, `execution/tradier_service.py`, `execution/retail_services.py`): live-mode Alpaca orders now go to the Alpaca **paper** account unless `ALPACA_PAPER=false`, a deliberate default change (CF-07); sandbox switches parse 1/yes/TRUE (CF-06).
-- **Sizing** (BE-05, BE-21): orders are valued at the latest price and sized against the paper ledger's or the brokerage's real equity; a BUY that cannot be sized is refused.
-- **Approval API contract** (BE-26, BE-29, BE-32, BE-33): CORS limited to the dashboard origins (`API_CORS_ORIGINS`), the WebSocket too; cancelling needs the `confirm_token`; errors answer 404/403/409; a proposal made in the other mode is refused (`mode_mismatch`).
-- **Exits** (BE-30): selling out of a position is no longer refused by the size, daily-loss or drawdown rules; an unsupported or unconfigured brokerage is refused before any check.
-- **Tool response contract** (BE-25, BE-28, BE-20): failures that used to be `ok: true` are now `ok: false` with codes (`backtest_error`, `not_configured`, `source_unavailable`, `insufficient_funds`, `limit_not_marketable`, `not_implemented`). Agents that relied on the old shape will see errors.
-- **Data location** (PRE-10): default data files moved from the working directory to `<repo>/data/`. An existing ledger under another working directory is not migrated; set `PAPER_DB_PATH` to keep using it.
-- **Dependency pin** (PRE-03): `mcp>=1.24.0,<2` because fastmcp 2.14.1 imports a module mcp 2.x removed.
-
-### Evidence
-Full log: [`uat/UAT-LOG.md`](uat/UAT-LOG.md) · ledger `uat/runs/2026-09-24-01/findings.json` · captures under `uat/evidence/2026-09-24-01/` (four dashboard screenshots stay with the local run; their `.json` captures carry the same assertions).
-
-### DOX pass
-- Root `AGENTS.md` created (the repo had none): purpose, ownership, the fail-closed and response contracts, data-path rule, docs-must-match rule, verification commands; indexes `uat/AGENTS.md`.
-- `uat/AGENTS.md`: created by the UAT tooling; owns the log, ledger and evidence.
-- `_deprecated/README.md`: explains the crypto signer moved out of the shipped tree.
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-https://claude.ai/code/session_01JoGpymL6LG3N8Mx7Btuxp5
+- **high** BE-32 — A proposal executes in the mode it was proposed in → proposals record paper_mode; the approval API refuses th
