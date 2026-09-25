@@ -1,14 +1,1 @@
-$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/intel_fail.sh
-# at 2026-09-24T08:20:15+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
-
---- invalid keys
-CALL get_financial_news {"symbol": "AAPL"} -> { "data": { "financial_news": "NewsAPI Error: {'status': 'error', 'code': 'apiKeyInvalid', 'message': 'Your API key is invalid or incorrect. Check your key, or go to https://newsapi.org to create a free API key.'}", "symbol": "AAPL" }, "ok": true }
-CALL get_market_news {"symbol": "AAPL"} -> { "data": { "news": "Alpha Vantage news:\n1. ‘A phone is unique to you, it’s not going anywhere’: Qualcomm CEO’s big bet on Agentic AI as company unveils new mobile chips (The Indian Express)\n2. Form 8K Bio-Techne Corp For: 23 September By
---- no keys
-CALL get_financial_news {"symbol": "AAPL"} -> { "data": { "financial_news": "Financial News: NEWSAPI_KEY missing or NewsApiClient not installed. (Zero-Mock Policy).", "symbol": "AAPL" }, "ok": true }
-CALL get_market_news {"symbol": "AAPL"} -> { "data": { "news": "Market News: ALPHAVANTAGE_API_KEY missing. News unavailable.", "symbol": "AAPL" }, "ok": true }
-CALL get_social_sentiment {"symbol": "AAPL"} -> { "data": { "posts": "Social Sentiment Unavailable for AAPL: No sentiment APIs configured.\nTo enable social feeds:\n1. X (Twitter): Get a Bearer Token from https://developer.x.com/ and set TWITTER_BEARER_TOKEN\n2. Reddit: Create an app at https://www.reddit.c
-CALL get_market_sentiment {} -> { "data": { "market_sentiment": "Market Sentiment: CNN Fear & Greed unavailable (HTTP 404). (Zero-Mock Policy: No simulated fallback provided)." }, "ok": true }
-
-
-exit=0
+‘
