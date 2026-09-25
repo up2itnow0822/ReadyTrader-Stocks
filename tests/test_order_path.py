@@ -19,6 +19,10 @@ from app.core.container import global_container
 EQUITY = 100_000.0
 
 
+OPERATOR_TOKEN = "unit-test-operator-token"
+OPERATOR_HEADERS = {"Authorization": f"Bearer {OPERATOR_TOKEN}"}
+
+
 @pytest.fixture(autouse=True)
 def steady_paper_metrics(monkeypatch):
     monkeypatch.setattr(
@@ -112,7 +116,7 @@ def test_a_buy_that_cannot_be_priced_fails_closed(monkeypatch):
     monkeypatch.setattr(global_container, "exchange_provider", FakeProvider(exc=RuntimeError("no quote")))
     payload = json.loads(trading.place_market_order("AAPL", "buy", 1.0))
     assert payload["error"]["code"] == "risk_blocked"
-    assert "Could not price AAPL" in payload["error"]["message"]
+    assert "No market price for AAPL" in payload["error"]["message"]
 
 
 def test_a_paper_execution_error_is_a_json_error_not_an_exception(monkeypatch):
@@ -130,6 +134,8 @@ def test_a_paper_execution_error_is_a_json_error_not_an_exception(monkeypatch):
 @pytest.fixture
 def live(monkeypatch):
     broker = FakeBroker()
+    # Live proposals are approved only with the operator token (UAT XR-11).
+    monkeypatch.setenv("API_OPERATOR_TOKEN", OPERATOR_TOKEN)
     monkeypatch.setattr(settings, "PAPER_MODE", False)
     monkeypatch.setattr(settings, "MARKET_GUARD_ON_DATA_ERROR", "")
     monkeypatch.setattr(settings, "LIVE_TRADING_ENABLED", True)
@@ -207,7 +213,7 @@ def test_an_approval_in_live_mode_needs_live_trading_enabled(monkeypatch, live):
     monkeypatch.setattr(settings, "EXECUTION_APPROVAL_MODE", "approve_each")
     proposal = json.loads(trading.place_stock_order("AAPL", "buy", 1.0, price=100.0))["data"]
     monkeypatch.setattr(settings, "LIVE_TRADING_ENABLED", False)
-    response = TestClient(api.app).post(
+    response = TestClient(api.app, headers=OPERATOR_HEADERS).post(
         "/api/approve-trade",
         json={"request_id": proposal["request_id"], "confirm_token": proposal["confirm_token"], "approve": True},
     )
@@ -263,7 +269,7 @@ def test_an_approved_live_proposal_still_passes_the_policy(monkeypatch, live):
     monkeypatch.setattr(settings, "EXECUTION_APPROVAL_MODE", "approve_each")
     proposal = json.loads(trading.place_stock_order("AAPL", "sell", 40.0, price=100.0))["data"]
     monkeypatch.setenv("MAX_ORDER_AMOUNT", "10")
-    response = TestClient(api.app).post(
+    response = TestClient(api.app, headers=OPERATOR_HEADERS).post(
         "/api/approve-trade",
         json={"request_id": proposal["request_id"], "confirm_token": proposal["confirm_token"], "approve": True},
     )
@@ -280,7 +286,7 @@ def test_an_approval_without_brokerage_keys_is_a_coded_error(monkeypatch, live):
     monkeypatch.setattr(settings, "EXECUTION_APPROVAL_MODE", "approve_each")
     proposal = json.loads(trading.place_stock_order("AAPL", "sell", 1.0, price=100.0))["data"]
     monkeypatch.setitem(global_container.brokerages, "alpaca", FakeBroker(available=False))
-    response = TestClient(api.app).post(
+    response = TestClient(api.app, headers=OPERATOR_HEADERS).post(
         "/api/approve-trade",
         json={"request_id": proposal["request_id"], "confirm_token": proposal["confirm_token"], "approve": True},
     )
@@ -418,7 +424,7 @@ def test_approval_errors_say_which_problem_it_is(monkeypatch):
 
     import app.api_server as api
 
-    client = TestClient(api.app)
+    client = TestClient(api.app, headers=OPERATOR_HEADERS)
 
     def approve(request_id, token):
         return client.post("/api/approve-trade", json={"request_id": request_id, "confirm_token": token, "approve": True})
@@ -470,11 +476,12 @@ def test_a_paper_proposal_never_executes_live(monkeypatch):
     monkeypatch.setattr(settings, "EXECUTION_APPROVAL_MODE", "approve_each")
     proposal = json.loads(trading.place_market_order("AAPL", "buy", 1.0))["data"]
     broker = FakeBroker()
+    monkeypatch.setenv("API_OPERATOR_TOKEN", OPERATOR_TOKEN)
     monkeypatch.setattr(settings, "PAPER_MODE", False)
     monkeypatch.setattr(settings, "LIVE_TRADING_ENABLED", True)
     monkeypatch.setattr(settings, "TRADING_HALTED", False)
     monkeypatch.setitem(global_container.brokerages, "alpaca", broker)
-    response = TestClient(api.app).post(
+    response = TestClient(api.app, headers=OPERATOR_HEADERS).post(
         "/api/approve-trade", json={"request_id": proposal["request_id"], "confirm_token": proposal["confirm_token"], "approve": True}
     )
     assert response.status_code == 409 and response.json()["detail"]["code"] == "mode_mismatch"
@@ -488,7 +495,7 @@ def test_the_pending_list_shows_the_order_but_never_the_token(monkeypatch):
 
     monkeypatch.setattr(settings, "EXECUTION_APPROVAL_MODE", "approve_each")
     proposal = json.loads(trading.place_market_order("AAPL", "buy", 1.0))["data"]
-    pending = TestClient(api.app).get("/api/pending-approvals").json()["pending"]
+    pending = TestClient(api.app, headers=OPERATOR_HEADERS).get("/api/pending-approvals").json()["pending"]
     mine = [p for p in pending if p["request_id"] == proposal["request_id"]][0]
     assert mine["order"]["symbol"] == "AAPL" and mine["order"]["side"] == "buy" and mine["order"]["paper_mode"] is True
     assert proposal["confirm_token"] not in json.dumps(pending)
@@ -500,7 +507,7 @@ def test_a_web_page_elsewhere_cannot_open_the_websocket():
 
     import app.api_server as api
 
-    client = TestClient(api.app)
+    client = TestClient(api.app, headers=OPERATOR_HEADERS)
     with pytest.raises(WebSocketDisconnect):
         with client.websocket_connect("/ws", headers={"Origin": "https://evil.example"}):
             pass
