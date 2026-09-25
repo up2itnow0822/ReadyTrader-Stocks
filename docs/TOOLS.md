@@ -59,6 +59,9 @@ Place a market order for a stock.
 `sentiment_score` is your own reading on [-1, +1] (see validate_trade_risk); below -0.5 the
 sentiment rule blocks a BUY. Left unset, sentiment is neutral. Independently, every BUY is
 checked against recent daily closes (Falling Knife, price) - see validate_trade_risk.
+Live Alpaca orders are sent only while the market is open and fill now or not
+at all (IOC; a fractional market order goes out DAY, a fractional limit is refused); the answer
+reports what filled (`filled_qty`).
 ```
 
 ---
@@ -73,6 +76,9 @@ Place a limit order for a stock.
 `sentiment_score` is your own reading on [-1, +1] (see validate_trade_risk); below -0.5 the
 sentiment rule blocks a BUY. Left unset, sentiment is neutral. Independently, every BUY is
 checked against recent daily closes (Falling Knife, price) - see validate_trade_risk.
+Live Alpaca orders are sent only while the market is open and fill now or not
+at all (IOC; a fractional market order goes out DAY, a fractional limit is refused); the answer
+reports what filled (`filled_qty`).
 ```
 
 ---
@@ -89,6 +95,9 @@ alpaca or tradier; live orders need LIVE_TRADING_ENABLED=true and brokerage keys
 reading on [-1, +1] (see validate_trade_risk); below -0.5 the sentiment rule blocks a BUY.
 Independently, every BUY is checked against recent daily closes (Falling Knife, price). With
 EXECUTION_APPROVAL_MODE=approve_each the order is returned as a pending proposal instead.
+Live Alpaca orders are sent only while the market is open and fill now or not
+at all (IOC; a fractional market order goes out DAY, a fractional limit is refused); the answer
+reports what filled (`filled_qty`).
 ```
 
 ---

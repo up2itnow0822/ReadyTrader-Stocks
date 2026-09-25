@@ -47,8 +47,8 @@ provider raised), `disabled`, or `not_checked` (a SELL).
 the provider has no bar for it yet. The session is read from `MARKET_TIMEZONE` and
 `MARKET_HOURS_START` (US/Eastern, 09:30), Monday to Friday; without today's bar the rule would be
 reading yesterday's closes while missing a collapse happening now. On an exchange holiday that
-reads as stale all day, which is the safe answer: the market is closed, so a BUY would fill at the
-next open, on a price this check has not seen. Bars are matched to dates in `MARKET_TIMEZONE`, so a
+reads as stale all day, which is the safe answer: the market is closed (a paper order would fill at
+a price this check has not seen; a live Alpaca order is refused as `market_closed`). Bars are matched to dates in `MARKET_TIMEZONE`, so a
 listing on an exchange in another time zone can read as stale during US hours.
 
 | `MARKET_GUARD_ON_DATA_ERROR` | A BUY whose check could not run |

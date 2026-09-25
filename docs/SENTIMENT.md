@@ -90,7 +90,7 @@ A gate that catches one crash in eight and blocks good buys on peer news is net 
 
 ### What ships instead
 
-- **The order path is no longer a bypass.** It reads the same sentiment value as the validation tool, and now passes daily loss and drawdown, which it never did — so those two rules apply to real orders for the first time.
+- **The order path is no longer a bypass.** It reads the same sentiment value as the validation tool, and now passes the paper account's daily loss and drawdown, which it never did. (A live brokerage account has no loss history here, so live orders report those two rules as `inactive_rules`.)
 - **Nothing fabricates a number.** The cache stores how much text was fetched, never a score.
 - **The absence of a measurement is visible.** Every verdict carries a `sentiment` block whose `source` is `unmeasured` or `agent_supplied` — never a measurement by this server — plus a `hint` saying what to do about it.
 - **The agent can supply its own reading.** `validate_trade_risk(..., sentiment_score=...)` and every order entry point accept a score on `[-1, +1]`. You are an LLM reading the actual posts, which is a far better judge of them than any word list, and the response records that the judgement was yours.
