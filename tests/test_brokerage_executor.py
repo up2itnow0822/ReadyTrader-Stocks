@@ -62,3 +62,4 @@ def test_alpaca_brokerage_get_balance(mock_client):
         
         assert res["equity"] == 100000.0
         assert res["cash"] == 50000.0
+
