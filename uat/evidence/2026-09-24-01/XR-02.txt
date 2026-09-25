@@ -14,7 +14,6 @@ It will be compatible before version 2.0.0.
 3.  **Governance:** The Risk Guardian checks the order against your account: no more than 5% of the account per trade (valued at the latest price; selling out of a position is an exit and is never sized as new exposure), nothing that adds exposure after a 5% daily loss or a 10% drawdown, and no BUY 
     - **Position size**: the Risk Guardian refuses any order that adds exposure worth over 5% of the account's equity (valued at the latest price), and every order that adds exposure after a 5% daily loss or a 10% drawdown; selling out of a position stays possible.
 - **The order path is no longer a bypass.** It reads the same sentiment value as the validation tool, and now passes daily loss and drawdown, which it never did — so those two rules apply to real orders for the first time.
-- **The order path is no longer a bypass.** It reads the same sentiment value as the validation tool, and now passes daily loss and drawdown, which it never did — so those two rules apply to real orders for the first time.
   - `Daily Loss Limit Hit` / `Max Drawdown`: the account lost 5% today or is 10% below its peak;
 
 
