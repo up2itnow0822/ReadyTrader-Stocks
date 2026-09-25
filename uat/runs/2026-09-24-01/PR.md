@@ -123,6 +123,55 @@ The FOREX cross-review found three more classes here, and a separate agent then 
 
 ### Still blocked (needs the owner)
 - **IN-02** live brokerage round trip: needs Alpaca **paper-account** keys (`ALPACA_API_KEY`, `ALPACA_API_SECRET`). With `ALPACA_PAPER=true` (now the default) the whole live path can be exercised with no real money: set `PAPER_MODE=false`, `LIVE_TRADING_ENABLED=true`, `EXECUTION_APPROVAL_MODE=approve_each`.
+- **CI workflow**: `main` runs a Node placeholder (`npm test --if-present || echo ...`) that tests nothing. The local branch replaces it with `.github/workflows/ci.yml` (ruff, pytest, bandit on Python 3.12; dashboard npm ci/lint/build), but the connector used to push cannot write workflow files. Please add it (Actions → new workflow, or commit it):
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (as the README does)
+        run: python -m pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check .
+      - name: Tests (includes a real stdio MCP session through python app/main.py)
+        run: pytest
+      - name: Security scan
+        run: bandit -q -c bandit.yaml -r app core common execution intelligence marketdata observability strategy
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+```
+
 - **Repo setting**: SECURITY.md now points reporters at GitHub private vulnerability reporting; switch it on under Settings → Code security if it is off (not visible from here).
 
 ### Review these fixes with extra care
@@ -143,7 +192,7 @@ The FOREX cross-review found three more classes here, and a separate agent then 
 - **Dependency pin** (PRE-03): `mcp>=1.24.0,<2` because fastmcp 2.14.1 imports a module mcp 2.x removed.
 
 ### Evidence
-Full log: [`uat/UAT-LOG.md`](uat/UAT-LOG.md) (rendered from the run's ledger) · captures under `uat/evidence/2026-09-24-01/` (four dashboard screenshots and the machine-readable ledger `findings.json` stay with the local run: the push path used here takes text files under ~95 KB; their content is in the log and the `.json` captures).
+Full log: [`uat/UAT-LOG.md`](uat/UAT-LOG.md) (rendered from the run's ledger) · ledger `uat/runs/2026-09-24-01/findings.json` · captures under `uat/evidence/2026-09-24-01/` (the seven dashboard screenshots (PNG) stay with the local run because the connector used to push writes text only; each screenshot's `.json` capture carries its assertions).
 
 ### DOX pass
 - Root `AGENTS.md` now also records: Alpaca fill-now-or-not-at-all, `app/tools/params.py`, switches-first and audit order, the operator-token router and CORS order.
@@ -151,6 +200,11 @@ Full log: [`uat/UAT-LOG.md`](uat/UAT-LOG.md) (rendered from the run's ledger) ·
 - `uat/AGENTS.md`: created by the UAT tooling; owns the log, ledger and evidence.
 - `_deprecated/README.md`: explains the crypto signer moved out of the shipped tree.
 - Root `AGENTS.md` (XR round): market-price sizing and symbol normalisation, the time-weighted paper loss limits, the operator token and API response contract, the Docker user and `.dockerignore` rule.
+
+### Branch parity
+`git push` was not available to the session that ran this UAT, so this branch was written through the GitHub
+connector. Every file on it is byte-identical to the tested local branch (checked with `git hash-object`
+against the fetched branch), the run ledger `uat/runs/2026-09-24-01/findings.json` included, except the seven PNG screenshots and `.github/workflows/ci.yml` (above), which the connector cannot write; the owner has those in the run's local archive.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
