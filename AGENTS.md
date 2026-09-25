@@ -27,11 +27,35 @@ dashboard (`frontend/`).
 - Risk rules judge the exposure an order adds (from the paper ledger or the brokerage's positions):
   selling out of a position is never sized as new exposure; an order that adds exposure and cannot
   be priced or sized is refused; unknown live positions count as new exposure.
+- Orders are valued at the market price (a limit at the higher of limit and market), never at a
+  price the caller supplies alone; a market order's `price` is dropped before it can size, propose
+  or reach a brokerage. Symbols are normalised (strip, upper case) once, in `place_stock_order`;
+  a `/` is refused, and in paper mode so is a ticker spelled like the ledger's cash (`USD`).
+- Paper loss limits (`core/paper.py get_risk_metrics`) read a time-weighted performance index:
+  deposits (valued when made; `deposit_paper_funds` refuses shares it cannot price) are neither gains
+  nor losses; holdings are marked to the latest quote before every check; the daily baseline is the
+  previous UTC day's last snapshot, else the day-open mark. Live orders report the daily-loss and
+  drawdown rules in `inactive_rules`.
+- The approval API: `API_OPERATOR_TOKEN` (API process only) gates every `/api/` call but
+  `/api/health` through the `require_operator` dependency of the `operator_api` router (never a
+  path check in a middleware: the URL path can differ from the routed path); CORS is added after the
+  `request_context` middleware so it wraps every answer. It is required to approve live proposals
+  (the agent holds the `confirm_token`);
+  every response carries `X-Request-ID` and security headers; errors never echo exception text.
 - Tools answer `{"ok": true, "data"}` or `{"ok": false, "error": {"code", "message", "data"}}`; a
   source that cannot answer is an error, never a payload. New codes go in `docs/ERRORS.md`.
 - Default data files live in `<repo>/data/` via `common/paths.data_path` (never the working
   directory); `READYTRADER_DATA_DIR` and each `*_PATH` variable override.
 - Every variable the code reads is in `env.example`, with no inline comments or placeholder keys.
+- Nothing waits at the broker: an Alpaca order is sent only while the market is open
+  (`market_closed_reason`; else `market_closed`), as `IOC` (fractional market orders `DAY`,
+  fractional limits refused), and read back for what filled, because the Guardian judges an order at
+  the moment it is placed; the other connectors' resting limits are documented, never counted.
+- Numeric MCP tool parameters use `app/tools/params.py` (`Number`, `Integer`): booleans are refused.
+- In live mode the operator switches answer first (order tools and approval, before a proposal is
+  consumed); every well-formed order request is audited (`trade_start`).
+- Docker: the image runs as the unprivileged `readytrader` user; `.dockerignore` patterns are `**/`
+  (a bare pattern matches only at the context root) and keep every `.env*`, key file and database out.
 - Docs describe only what runs: after changing a tool, run `python tools/generate_tool_docs.py`
   and update README / `docs/` in the same change.
 
