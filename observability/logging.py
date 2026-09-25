@@ -89,3 +89,4 @@ def log_event(event: str, *, ctx: Dict[str, Any], data: Optional[Dict[str, Any]]
     if data:
         payload["data"] = redact(data)
     print(json.dumps(payload, sort_keys=True))
+
