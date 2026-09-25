@@ -293,6 +293,8 @@ def test_the_order_path_blocks_a_live_buy_when_data_is_unreadable(monkeypatch, q
 
     monkeypatch.setitem(global_container.brokerages, "alpaca", Broker())
     monkeypatch.setattr(settings, "PAPER_MODE", False)
+    monkeypatch.setattr(settings, "LIVE_TRADING_ENABLED", True)  # the switches pass: they answer first
+    monkeypatch.setattr(settings, "TRADING_HALTED", False)
     monkeypatch.setattr(settings, "MARKET_GUARD_ON_DATA_ERROR", "")
     fail_fetch(monkeypatch)
     payload = json.loads(trading.place_stock_order(SYMBOL, "buy", 10.0, price=25.0))
