@@ -1,0 +1,46 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p4_nan.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2'
+# at 2026-09-24T20:50:57+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+== amounts (paper, auto) ==
+   place_market_order amount=nan     : invalid_request | place_limit_order amount: invalid_request | limit price: invalid_request
+   place_market_order amount=inf     : invalid_request | place_limit_order amount: invalid_request | limit price: invalid_request
+   place_market_order amount=-inf    : invalid_request | place_limit_order amount: invalid_request | limit price: invalid_request
+   place_market_order amount=-1.0    : invalid_request | place_limit_order amount: invalid_request | limit price: invalid_request
+   place_market_order amount=0.0     : invalid_request | place_limit_order amount: invalid_request | limit price: invalid_request
+   place_market_order amount=-0.0    : invalid_request | place_limit_order amount: invalid_request | limit price: invalid_request
+   place_market_order amount='1e400' : invalid_request | place_limit_order amount: invalid_request | limit price: invalid_request
+   place_market_order amount=True    : ok | place_limit_order amount: limit_not_marketable | limit price: limit_not_marketable
+== price on a MARKET order (not validated) ==
+   place_stock_order market price=nan: ok
+   place_stock_order market price=inf: risk_blocked
+   place_stock_order market price=-5.0: ok
+   place_stock_order market price=0.0: ok
+== sentiment_score ==
+   validate_trade_risk sentiment=nan: score read as 1.0, allowed=True
+   validate_trade_risk sentiment=inf: score read as 1.0, allowed=True
+   validate_trade_risk sentiment=-inf: score read as -1.0, allowed=False
+== validate_trade_risk amounts ==
+   amount_usd=nan: invalid_request
+   amount_usd=inf: invalid_request
+   amount_usd=-1.0: invalid_request
+   amount_usd=0.0: invalid_request
+== deposit_paper_funds ==
+   amount=nan: invalid_request
+   amount=inf: invalid_request
+   amount=-1.0: invalid_request
+   amount=0.0: invalid_request
+
+== approve_each: a market order with price=NaN becomes a proposal ==
+   tool output (excerpt): {   "data": {     "confirm_token": "bbd49de1fcb05f473743cc6b00f714ea",     "order_details": {       "amount": 1.0,       "exchange": "alpaca",       "order_type
+   place_market_order sentiment=NaN output has NaN: True
+   GET /api/pending-approvals -> 500 Internal Server Error | headers: {'content-length': '21', 'content-type': 'text/plain; charset=utf-8'}
+   server exception: ValueError Out of range float values are not JSON compliant: nan
+   approving that proposal -> 200 {"ok":true,"result":"Paper Trade Executed: BUY 1.0 AAPL @ 100.4. Value: 100.4 USD. Rationale: api_approved"}
+
+== live, NaN/neg price on market order reaches the brokerage? ==
+   live market BUY 1 price=nan: ok [{'symbol': 'AAPL', 'side': 'buy', 'qty': 1.0, 'order_type': 'market', 'price': None}]
+   live market BUY 1 price=-5.0: ok [{'symbol': 'AAPL', 'side': 'buy', 'qty': 1.0, 'order_type': 'market', 'price': None}]
+   math.isnan check of what the broker got: [None, None]
+
+
+exit=0

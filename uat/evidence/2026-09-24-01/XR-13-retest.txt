@@ -1,0 +1,10 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/bool_mcp.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks 2>&1 | grep -v 'Warning\|warn\|authlib\|httpx2\|compatible before\|│\|╭\|╰\|INFO     \|stdio'
+# at 2026-09-24T22:01:23+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+deposit_paper_funds {"asset": "USD", "amount": true} -> tool error: 1 validation error for call[deposit_paper_funds] amount Value error, a number is required, not true/false [type=value_error, inp
+deposit_paper_funds {"asset": "USD", "amount": 10000} -> ok {"message": "Deposited 10000.0 USD. New Balance: 10000.0"}
+place_market_order {"symbol": "AAPL", "side": "buy", "amount": true} -> tool error: 1 validation error for call[place_market_order] amount Value error, a number is required, not true/false [type=value_error, inpu
+validate_trade_risk {"side": "buy", "symbol": "AAPL", "amount_usd": true, "portfolio_value": 10000} -> tool error: 1 validation error for call[validate_trade_risk] amount_usd Value error, a number is required, not true/false [type=value_error,
+
+
+exit=0

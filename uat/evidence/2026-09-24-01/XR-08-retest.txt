@@ -1,0 +1,45 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx/docker_nested.sh; cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p6_docker.py 2>&1 | sed -n '1,26p'
+# at 2026-09-24T21:09:49+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+canaries placed: .env.live configs/.env app/.env certs/server.pem keys/tls.key keystore/wallet.json configs/data/paper.db execution.db
+sha256:b187e2d7238ecf0fd0ded690c2a9aa47d21afdeafbf41674de998343b05f769a
+--- inside the image:
+user: readytrader uid=10001
+canary files: 0
+pyc files: 0
+drwxr-xr-x 2 readytrader readytrader 4096 Sep 24 21:08 /app/data
+--- README MCP config, two sessions on the named volume:
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, get_market_regime, get_market_sentiment, get_multiple_prices, get_social_sentiment
+CALL deposit_paper_funds {"asset": "USD", "amount": 100} -> { "data": { "message": "Deposited 100.0 USD. New Balance: 300.0" }, "ok": true }
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, get_market_regime, get_market_sentiment, get_multiple_prices, get_social_sentiment
+CALL deposit_paper_funds {"asset": "USD", "amount": 100} -> { "data": { "message": "Deposited 100.0 USD. New Balance: 400.0" }, "ok": true }
+(tree clean)
+== hypothetical secret / junk paths ==
+   .env                                     excluded               .dockerignore:16 **/.env*
+   .env.live                                excluded               .dockerignore:16 **/.env*
+   .env.local                               excluded               .dockerignore:16 **/.env*
+   .env.production                          excluded               .dockerignore:16 **/.env*
+   configs/.env                             excluded               .dockerignore:16 **/.env*
+   app/.env                                 excluded               .dockerignore:16 **/.env*
+   frontend/.env.local                      excluded               .dockerignore:16 **/.env*
+   server.pem                               excluded               .dockerignore:17 **/*.pem
+   certs/server.pem                         excluded               .dockerignore:17 **/*.pem
+   tls.key                                  excluded               .dockerignore:18 **/*.key
+   keys/id_rsa.key                          excluded               .dockerignore:18 **/*.key
+   keystore/wallet.json                     excluded               .dockerignore:19 **/keystore*
+   keystore                                 excluded               .dockerignore:19 **/keystore*
+   secrets.json                             excluded               .dockerignore:20 **/secrets*.json
+   app/__pycache__/main.cpython-312.pyc     excluded               .dockerignore:6 **/*.pyc
+   core/foo.pyc                             excluded               .dockerignore:6 **/*.pyc
+   data/paper.db                            excluded               .dockerignore:26 data/
+   configs/data/paper.db                    excluded               .dockerignore:23 **/*.db
+   app/paper.db                             excluded               .dockerignore:23 **/*.db
+   execution.db                             excluded               .dockerignore:23 **/*.db
+   frontend/.next/cache                     excluded               .dockerignore:38 frontend/.next/
+   uat/UAT-LOG.md                           excluded               .dockerignore:28 uat/
+   .pytest_cache/x                          excluded               .dockerignore:9 **/.pytest_cache/
+
+== files actually in the working tree that would be sent and look like caches/secrets/local state ==
+
+
+exit=0

@@ -1,0 +1,10 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/bool_mcp.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks 2>&1 | grep -v 'Warning\|warn\|authlib\|httpx2\|compatible before\|│\|╭\|╰\|INFO     '
+# at 2026-09-24T21:57:11+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+deposit_paper_funds {"asset": "USD", "amount": true} -> ok {"message": "Deposited 1.0 USD. New Balance: 1.0"}
+deposit_paper_funds {"asset": "USD", "amount": 10000} -> ok {"message": "Deposited 10000.0 USD. New Balance: 10001.0"}
+place_market_order {"symbol": "AAPL", "side": "buy", "amount": true} -> ok {"result": "Paper Trade Executed: BUY 1.0 AAPL @ 335.9200134277344. Value: 335.9200134277344 USD. Rationale: stock_order_paper", "venue": "p
+validate_trade_risk {"side": "buy", "symbol": "AAPL", "amount_usd": true, "portfolio_value": 10000} -> ok {"amount_usd": 1.0, "market": {"as_of": "2026-09-24T04:00:00Z", "bars": 40, "detail": null, "drop_pct": 0.011273, "falling_knife": false, "l
+
+
+exit=0
