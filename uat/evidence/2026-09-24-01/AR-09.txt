@@ -1,0 +1,18 @@
+$ docker volume rm rt-stocks-upgrade-probe >/dev/null; bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/volume_upgrade.sh /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/st_head readytrader-stocks rt-stocks-upgrade-probe
+# at 2026-09-25T11:41:26+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+old image (7555823 ): sha256:cc25d9bd835d6
+new image (b1fa4e8 ): sha256:9fd7032fedb9e
+--- the old image (root) on volume rt-stocks-upgrade-probe:
+CALL deposit_paper_funds {"asset": "USD", "amount": 1000} -> { "data": { "message": "Deposited 1000.0 USD. New Balance: 1000.0" }, "ok": true }
+--- owners in the volume:
+-rw-r--r-- 1 0 0 20480 Sep 25 11:41 insights.db
+-rw-r--r-- 1 0 0 32768 Sep 25 11:41 paper.db
+-rw-r--r-- 1 0 0 16384 Sep 25 11:41 strategies.db
+--- the new image (uid 10001) on the same volume:
+    its start-up on this volume (last lines of stderr):
+sqlite3.OperationalError: attempt to write a readonly database
+    (none above = started cleanly)
+
+
+exit=0

@@ -1,0 +1,15 @@
+$ sed -n 45,52p docs/FALLING_KNIFE.md; sed -n 64,67p RUNBOOK.md
+# at 2026-09-25T11:40:47+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+
+`stale` means either the latest bar is more than 5 days old, or today's session has opened and
+the provider has no bar for it yet. The session is read from `MARKET_TIMEZONE` and
+`MARKET_HOURS_START` (US/Eastern, 09:30), Monday to Friday; without today's bar the rule would be
+reading yesterday's closes while missing a collapse happening now. On an exchange holiday that
+reads as stale all day, which is the safe answer: the market is closed, so a BUY would fill at the
+next open, on a price this check has not seen. Bars are matched to dates in `MARKET_TIMEZONE`, so a
+listing on an exchange in another time zone can read as stale during US hours.
+    Selling out of a position is never refused by this rule. Reduce the size.
+  - `Daily Loss Limit Hit` / `Max Drawdown`: the paper account lost 5% today or is 10% below its
+    best result (deposits are neither gains nor a way out); orders that add exposure resume when the
+    condition clears; selling out is always allowed. Live orders do not run these two rules (the

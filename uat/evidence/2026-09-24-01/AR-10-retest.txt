@@ -1,0 +1,16 @@
+$ sed -n 64,70p RUNBOOK.md; grep -n -B1 -A1 'market_closed' docs/FALLING_KNIFE.md
+# at 2026-09-25T11:54:26+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+    Selling out of a position is never refused by this rule. Reduce the size.
+  - `Daily Loss Limit Hit` / `Max Drawdown`: the paper account lost 5% today or is 10% below its
+    best result (deposits are neither gains nor a way out). "Today" starts from the account's last
+    recorded value of the previous UTC day (a trade, a deposit or the first check of a day records
+    one), else its first value today: a move after a day's last record counts toward the next day's
+    loss too, which errs toward halting; orders that add exposure resume when the
+    condition clears; selling out is always allowed. Live orders do not run these two rules (the
+50-reads as stale all day, which is the safe answer: the market is closed (a paper order would fill at
+51:a price this check has not seen; a live Alpaca order is refused as `market_closed`). Bars are matched to dates in `MARKET_TIMEZONE`, so a
+52-listing on an exchange in another time zone can read as stale during US hours.
+
+
+exit=0
