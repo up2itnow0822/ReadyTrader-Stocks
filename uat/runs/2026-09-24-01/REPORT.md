@@ -1,6 +1,6 @@
 # UAT run 2026-09-24-01 — ReadyTrader-Stocks: CLEAN with BLOCKED items
 
-82 checks · 21 pass · 59 fail (59 fixed & verified, 0 open, 0 fixed-unverified, 0 regressed) · 2 blocked
+109 checks · 25 pass · 83 fail (83 fixed & verified, 0 open, 0 fixed-unverified, 0 regressed) · 1 blocked
 
 Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tools, paper trading, risk guardian, api_server approvals, docs/README/configs, CI, frontend build. Out: live brokerage orders (no credentials; live trading is a hard gate), Docker (no daemon in sandbox)
 
@@ -8,6 +8,8 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 
 - **critical** PRE-03 — Fresh install can import the MCP server (python app/main.py) → Pin mcp>=1.24.0,<2 in requirements.txt (`845e972`) · **VERIFIED**
 - **critical** PRE-04 — MCP server registers its tools (python -m app.main, env with mcp 1.x) → Register every tool with mcp.tool(fn); register place_stock_order (`845e972`) · **VERIFIED**
+- **critical** XR-01 — The Risk Guardian values an order at the market price, not the caller's → Valued at the market (limit: max(limit, market)); market-order price dropped; no market price refuses exposure-adding orders; the approval re-check passes order_type (`f84a5fc`) · **VERIFIED**
+- **high** AR-01 — The operator token cannot be steered past (Host header, root path) → require_operator is a dependency of the operator_api router holding every protected route. (`ecc181d`) · **VERIFIED**
 - **high** BE-01 — get_stock_price returns a price (MCP, stdio) → get_stock_price/get_multiple_prices use exchange_provider.fetch_ticker (`3f41a5a`) · **VERIFIED**
 - **high** BE-02 — Live orders require LIVE_TRADING_ENABLED and respect TRADING_HALTED (README) → LIVE_TRADING_ENABLED and TRADING_HALTED enforced on the live order path and the approval API; policy call fixed; unconfigured brokerage refused (`3f41a5a`) · **VERIFIED**
 - **high** BE-04 — Paper market order executes (README: place_market_order('AAPL','buy',10)) → paper market orders fill at the reference price; execution errors are JSON (`3f41a5a`) · **VERIFIED**
@@ -30,6 +32,13 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 - **high** PRE-05 — Documented start command python app/main.py resolves the app package → app/main.py inserts the repo root on sys.path when run as a file (`845e972`) · **VERIFIED**
 - **high** PRE-07 — Documented demo: python examples/paper_quick_demo.py → check_open_orders commits the fill before helpers open their own write connections (`845e972`) · **VERIFIED**
 - **high** PRE-09 — CI runs the project's tests → CI installs Python deps and runs ruff, pytest, bandit; builds and lints the dashboard (`352bd67`) · **VERIFIED**
+- **high** XR-02 — Docs say which loss limits apply to live orders → Live checks report inactive_rules [daily_loss_limit, max_drawdown]; docs say the loss rules run on the paper account (`f84a5fc,477c34c`) · **VERIFIED**
+- **high** XR-03 — A paper deposit does not end a drawdown halt → Time-weighted performance index; deposits recorded (valued when made) and excluded from returns (`f84a5fc`) · **VERIFIED**
+- **high** XR-04 — Paper loss limits and sizing read the account at today's prices → _mark_paper_prices marks holdings to the latest quote before every check; the current value ends the metrics series (`f84a5fc`) · **VERIFIED**
+- **high** XR-11 — A live approve_each order needs an approval the agent cannot give itself → API_OPERATOR_TOKEN gates /api/ (not /api/health) and is required to approve live proposals, checked before the proposal is consumed; the dashboard asks for it once per tab (`f84a5fc,9f0d0bf,477c34c`) · **VERIFIED**
+- **high** XR-14 — A live Alpaca order fills now or not at all → Alpaca orders are sent only while the market is open (clock checked first; failure refuses), market orders DAY, limits IOC. Docs: other brokerages' limits can rest and are not counted; the kill switch refuses closes; flatten at the broker. (`b1fa4e8`) · **VERIFIED**
+- **medium** AR-02 — The dashboard can read a 401 and ask for the operator token → CORS is added after request_context and wraps every answer. (`ecc181d`) · **VERIFIED**
+- **medium** AR-03 — The operator switches answer first, and refused orders are audited → trade_start is recorded after validation; live_execution_refusal answers first in place_stock_order; at approval the switches answer before the proposal is consumed and live_order_refusal runs before pre_trade_check. (`ecc181d`) · **VERIFIED**
 - **medium** BE-03 — fetch_ohlcv bars carry their timestamps → fetch_ohlcv keeps bar timestamps as ISO UTC (`3f41a5a`) · **VERIFIED**
 - **medium** BE-08 — Malformed trade requests are refused (unknown side, non-positive amount) → side must be buy/sell and amounts positive and finite (`3f41a5a`) · **VERIFIED**
 - **medium** BE-12 — API server starts as a file (python app/api_server.py) → api_server.py puts the repo root on sys.path when run as a file (`3f41a5a`) · **VERIFIED**
@@ -53,6 +62,17 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 - **medium** PRE-01 — README local install (pip install -r requirements-dev.txt) on the default python3 → README states Python 3.12+ and shows the python3.12 venv steps (`845e972`) · **VERIFIED**
 - **medium** PRE-08 — Documented demo: python examples/stress_test_demo.py → README and paper demo point at examples/simulation_demo.py (`845e972`) · **VERIFIED**
 - **medium** PRE-10 — Run as the README's 'Without Docker' config does (another working directory): the paper ledger stays with the install → common/paths.data_path anchors every default data file to <repo>/data (READYTRADER_DATA_DIR overrides); ensure_parent creates folders (`96979b4`) · **VERIFIED**
+- **medium** XR-05 — The daily-loss rule measures today's loss → Baseline = previous UTC day's last snapshot, else the day-open mark written at the first check of the day (`f84a5fc`) · **VERIFIED**
+- **medium** XR-06 — A ticker never collides with the paper ledger's cash → _invalid_symbol refuses '/' and, in paper mode, a ticker spelled like the cash asset (`f84a5fc`) · **VERIFIED**
+- **medium** XR-07 — A market order's price and the sentiment score are validated → Market-order price dropped; non-finite sentiment refused; the pending list replaces non-finite floats (`f84a5fc`) · **VERIFIED**
+- **medium** XR-08 — The Docker build context keeps secrets and local state out → Every cache/secret/database pattern is **/; the image runs as readytrader (uid 10001) (`a4b0937`) · **VERIFIED**
+- **low** AR-04 — Approving while the market is closed keeps the proposal → AlpacaBrokerage.market_closed_reason(); place_stock_order answers market_closed before proposing; the approval checks it before confirming; MarketClosed maps to 409 market_closed. (`ecc181d`) · **VERIFIED**
+- **low** AR-05 — A fractional Alpaca limit is refused before it is sent → A fractional limit is refused before sending, with the reason. (`ecc181d`) · **VERIFIED**
+- **low** AR-06 — The answer says what an IOC order filled → The order is read back until its state is final (up to ~3 s): status, filled_qty, filled_avg_price, time_in_force; cancelled unfilled raises (execution_error); the tool descriptions and TOOLS.md say how live Alpaca orders fill. (`ecc181d`) · **VERIFIED**
+- **low** AR-07 — Every numeric tool parameter refuses true → app/tools/params.py defines Number and Integer; every numeric tool parameter uses one. (`ecc181d`) · **VERIFIED**
+- **low** AR-08 — A whole-share Alpaca market order cannot wait out a trading halt → Whole-share market orders go out IOC; fractional ones DAY (Alpaca's rule), documented. (`ecc181d`) · **VERIFIED**
+- **low** AR-09 — An existing Docker data volume keeps working after the upgrade → RUNBOOK 'Upgrading a Docker data volume' and a CHANGELOG breaking note give the one-time chown to uid 10001. (`ecc181d`) · **VERIFIED**
+- **low** AR-10 — The docs describe the daily-loss baseline and the closed market as the code does → RUNBOOK gives the daily baseline as computed; FALLING_KNIFE.md says a live Alpaca order is refused as market_closed. (`ecc181d`) · **VERIFIED**
 - **low** BE-27 — deposit_paper_funds accepts only a positive amount → deposit_paper_funds validates amount (positive, finite) and asset (non-empty) (`70e5a3c`) · **VERIFIED**
 - **low** BE-29 — Approval API error paths: bad bodies 422, unknown ids 404, wrong token 403, no internals → approve_trade maps the store's refusal to 404/403/409; docs updated (`d9d65b6`) · **VERIFIED**
 - **low** BE-31 — validate_trade_risk does not promise a confirmation the order path never asks for → The over-$5,000 verdict is advisory and points at approve_each (`5fb2edf`) · **VERIFIED**
@@ -65,25 +85,28 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 - **low** DA-02 — Equity counts funds reserved by open limit orders → get_portfolio_value_usd adds funds reserved by open limit orders (`c978713`) · **VERIFIED**
 - **low** FE-04 — Navigation links lead to pages → remove nav links without pages (`352bd67`) · **VERIFIED**
 - **low** ME-02 — Insight fields are validated (signal bullish/bearish/neutral, confidence 0..1) → post_market_insight validates signal, confidence and ttl (`06c41c0`) · **VERIFIED**
+- **low** XR-09 — API responses and logs identify each request and do not leak internals → request_context middleware: X-Request-ID, per-request log id, security headers, JSON internal_error; log_event stamps ts_ms at emit time (`f84a5fc`) · **VERIFIED**
+- **low** XR-10 — Live orders reach the brokerage with the normalised symbol → place_stock_order normalises the symbol once and uses it everywhere (`f84a5fc`) · **VERIFIED**
+- **low** XR-12 — The Smithery listing offers only settings that work there → EXECUTION_APPROVAL_MODE is no longer offered; commandFunction passes only the listed settings and sets 'auto'. (`b1fa4e8`) · **VERIFIED**
+- **low** XR-13 — An MCP client cannot send true where a tool takes a number → Amounts, prices, values and scores on every tool are typed Number (float with a validator that refuses booleans before conversion); the JSON schema stays 'number'. (`b1fa4e8`) · **VERIFIED**
 
 ## Still blocked (needs the user)
 
 - IN-02 — Alpaca / Tradier live brokerage: blocked on Alpaca paper-account keys (ALPACA_API_KEY/ALPACA_API_SECRET) with ALPACA_PAPER=true (the default): run PAPER_MODE=false LIVE_TRADING_ENABLED=true EXECUTION_APPROVAL_MODE=approve_each and approve one small order through the API
-- DOC-02 — README Docker build and run (docker build -t readytrader-stocks .): blocked on a machine with Docker: docker build -t readytrader-stocks . then run configs/claude_desktop.mcp-server-config.json's command and list the tools
 
 ## Coverage
 
 | Section | Checks | Status |
 |---|---|---|
-| preflight | 10 | covered |
-| backend | 31 | covered |
-| data | 3 | covered |
+| preflight | 11 | covered |
+| backend | 41 | covered |
+| data | 7 | covered |
 | memory | 2 | covered |
-| frontend | 8 | covered |
-| integrations | 5 | covered |
+| frontend | 9 | covered |
+| integrations | 9 | covered |
 | cli | 4 | covered |
-| config | 9 | covered |
-| docs | 7 | covered |
+| config | 12 | covered |
+| docs | 9 | covered |
 | journeys | 6 | recorded |
 
 ## Delivery
@@ -91,4 +114,4 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 - Branch `uat/2026-09-24-stocks` has a remote (`origin`) but no upstream — it has not been pushed.
 - Base: `main@e389057`
 - DOX: root AGENTS.md indexes `uat/AGENTS.md`
-- Log: `uat/UAT-LOG.md` · evidence: `uat/evidence/2026-09-24-01/` (0.54 MB)
+- Log: `uat/UAT-LOG.md` · evidence: `uat/evidence/2026-09-24-01/` (0.64 MB)
