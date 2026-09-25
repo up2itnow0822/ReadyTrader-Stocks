@@ -1,0 +1,21 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p7_docs.py 2>&1 | sed -n '/which rules run in live mode/,$p'; cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks; sed -n 41p README.md | cut -c1-300; sed -n 21p docs/THREAT_MODEL.md; sed -n 93p docs/SENTIMENT.md; sed -n 62p RUNBOOK.md
+# at 2026-09-24T20:50:36+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+== which rules run in live mode? (pre_trade_check -> RiskGuardian.validate_trade kwargs) ==
+/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/fastmcp/server/auth/providers/jwt.py:10: AuthlibDeprecationWarning: authlib.jose module is deprecated, please use joserfc instead.
+It will be compatible before version 2.0.0.
+  from authlib.jose import JsonWebKey, JsonWebToken
+/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/authlib/integrations/httpx_client/assertion_client.py:5: AuthlibDeprecationWarning: The httpx module is deprecated; please use httpx2 instead.
+  from ._compat import httpx2
+/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/websockets/legacy/__init__.py:6: DeprecationWarning: websockets.legacy is deprecated; see https://websockets.readthedocs.io/en/stable/howto/upgrade.html for upgrade instructions
+  warnings.warn(  # deprecated in 14.0 - 2024-11-09
+   live BUY: True | guardian got daily_loss_pct = 0.0 current_drawdown_pct = 0.0
+   (no code path reads a live P&L or peak: grep 'daily_pnl|drawdown' in the live branch finds nothing)
+3.  **Governance:** The Risk Guardian checks the order against your account: no more than 5% of the account per trade (valued at the latest price; selling out of a position is an exit and is never sized as new exposure), nothing that adds exposure after a 5% daily loss or a 10% drawdown, and no BUY 
+    - **Position size**: the Risk Guardian refuses any order that adds exposure worth over 5% of the account's equity (valued at the latest price), and every order that adds exposure after a 5% daily loss or a 10% drawdown; selling out of a position stays possible.
+- **The order path is no longer a bypass.** It reads the same sentiment value as the validation tool, and now passes daily loss and drawdown, which it never did — so those two rules apply to real orders for the first time.
+- **The order path is no longer a bypass.** It reads the same sentiment value as the validation tool, and now passes daily loss and drawdown, which it never did — so those two rules apply to real orders for the first time.
+  - `Daily Loss Limit Hit` / `Max Drawdown`: the account lost 5% today or is 10% below its peak;
+
+
+exit=0
