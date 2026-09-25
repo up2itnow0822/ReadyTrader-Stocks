@@ -81,9 +81,11 @@ def log_event(event: str, *, ctx: Dict[str, Any], data: Optional[Dict[str, Any]]
     if _level_value(level) < _min_level_value():
         return
     payload = dict(ctx)
+    # The time of THIS event: a context built once (the API server's) stamped every line with the
+    # moment the process started.
+    payload["ts_ms"] = int(time.time() * 1000)
     payload["level"] = str(level).upper()
     payload["event"] = event
     if data:
         payload["data"] = redact(data)
     print(json.dumps(payload, sort_keys=True))
-

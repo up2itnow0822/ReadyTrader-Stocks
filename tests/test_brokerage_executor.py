@@ -25,13 +25,16 @@ def test_alpaca_brokerage_place_order(mock_client, mock_side, mock_tif, mock_req
         mock_order = MagicMock()
         mock_order.id = "alpaca_1"
         mock_order.client_order_id = "abc"
-        mock_order.status = "open"
+        mock_order.status = "filled"  # an IOC order's final state (no read-back needed)
+        mock_order.filled_qty = "5"
+        mock_order.filled_avg_price = "190.0"
         mock_order.symbol = "AAPL"
         mock_order.side = "buy"
         mock_order.qty = "5"
         mock_order.type = "market"
         
         mock_instance.submit_order.return_value = mock_order
+        mock_instance.get_clock.return_value = MagicMock(is_open=True)
         
         brokerage = AlpacaBrokerage()
         res = brokerage.place_order(symbol="AAPL", side="buy", qty=5)
@@ -59,4 +62,3 @@ def test_alpaca_brokerage_get_balance(mock_client):
         
         assert res["equity"] == 100000.0
         assert res["cash"] == 50000.0
-

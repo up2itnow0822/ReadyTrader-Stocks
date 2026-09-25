@@ -18,10 +18,6 @@ startCommand:
         type: string
         description: "Kill switch: any value other than empty/false/0/no/off refuses every live order."
         default: "false"
-      EXECUTION_APPROVAL_MODE:
-        type: string
-        description: "'auto' executes orders; 'approve_each' (or any other value) makes each order a proposal to approve."
-        default: "auto"
       MAX_ORDER_AMOUNT:
         type: string
         description: "Largest live order in shares (unset = no limit)."
@@ -46,17 +42,19 @@ startCommand:
         description: "Alpha Vantage key for get_market_news (optional)."
     required: []
   commandFunction:
-    # Every setting is passed to the server as an environment variable of the same name.
+    # Each setting listed above is passed to the server as an environment variable of the same name;
+    # nothing else is. EXECUTION_APPROVAL_MODE is not offered: approving a proposal needs the
+    # separate approval API and dashboard (app/api_server.py), which a Smithery launch does not run,
+    # so every order would become a proposal that can only expire. Orders here run in 'auto' mode.
     |-
-    (config) => ({
-      command: 'python',
-      args: ['app/main.py'],
-      env: Object.fromEntries(
-        Object.entries(config || {})
-          .filter(([, value]) => value !== undefined && value !== null && value !== '')
-          .map(([key, value]) => [key, String(value)])
-      )
-    })
+    (config) => {
+      const allowed = ['PAPER_MODE', 'LIVE_TRADING_ENABLED', 'TRADING_HALTED', 'MAX_ORDER_AMOUNT', 'ALLOW_TICKERS', 'ALPACA_API_KEY', 'ALPACA_API_SECRET', 'ALPACA_PAPER', 'NEWSAPI_KEY', 'ALPHAVANTAGE_API_KEY'];
+      const env = { EXECUTION_APPROVAL_MODE: 'auto' };
+      for (const key of allowed) {
+        const value = config ? config[key] : undefined;
+        if (value !== undefined && value !== null && value !== '') env[key] = String(value);
+      }
+      return { command: 'python', args: ['app/main.py'], env };
+    }
   exampleConfig:
     PAPER_MODE: "true"
-    EXECUTION_APPROVAL_MODE: "auto"

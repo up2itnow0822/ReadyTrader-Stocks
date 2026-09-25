@@ -25,7 +25,10 @@ def test_a_recovered_loss_is_no_longer_a_current_drawdown(engine):
     engine.execute_trade("u", "buy", "AAPL", amount=100.0, price=100.0)
     engine.execute_trade("u", "sell", "AAPL", amount=100.0, price=80.0)  # a real 2,000 loss
     assert engine.get_risk_metrics("u")["drawdown_pct"] == pytest.approx(0.02, abs=1e-6)
-    engine.deposit("u", "USD", 2_000.0)  # back to the peak
+    engine.deposit("u", "USD", 2_000.0)  # capital added is not a recovery (UAT XR-03)
+    assert engine.get_risk_metrics("u")["drawdown_pct"] == pytest.approx(0.02, abs=1e-6)
+    engine.execute_trade("u", "buy", "AAPL", amount=100.0, price=80.0)
+    engine.execute_trade("u", "sell", "AAPL", amount=100.0, price=101.0)  # a trading gain recovers it
     metrics = engine.get_risk_metrics("u")
     assert metrics["drawdown_pct"] == pytest.approx(0.0, abs=1e-9)
     assert metrics["max_drawdown_pct"] == pytest.approx(0.02, abs=1e-6)
