@@ -38,7 +38,7 @@ ReadyTrader-Stocks operates on a **User-Custodied** basis. This means:
 
 1.  **Research:** You ask your agent, "Find a good entry for AAPL." The agent calls `get_stock_price`, `fetch_ohlcv`, `get_market_regime` and `get_social_sentiment`.
 2.  **Proposal:** The agent concludes, "AAPL is oversold; I want to buy 3 shares." It calls `place_market_order`.
-3.  **Governance:** The Risk Guardian checks the order against your account: no more than 5% of the account per trade (valued at the latest price; selling out of a position is an exit and is never sized as new exposure), nothing that adds exposure after a 5% daily loss or a 10% drawdown, and no BUY into a collapse (`docs/FALLING_KNIFE.md`). Live orders also pass your `MAX_ORDER_AMOUNT` / `ALLOW_TICKERS` policy and need `LIVE_TRADING_ENABLED=true`.
+3.  **Governance:** The Risk Guardian checks the order against your account: no more than 5% of the account per trade (valued at the latest market price, never at a price the order carries; selling out of a position is an exit and is never sized as new exposure), on the paper account nothing that adds exposure after a 5% daily loss or a 10% drawdown (a live brokerage account has no loss history here, so live orders list those two rules in `inactive_rules`), and no BUY into a collapse (`docs/FALLING_KNIFE.md`). Live orders also pass your `MAX_ORDER_AMOUNT` / `ALLOW_TICKERS` policy and need `LIVE_TRADING_ENABLED=true`.
 4.  **Consent:** With `EXECUTION_APPROVAL_MODE=approve_each`, the order comes back as a pending proposal. You approve it through the [API or the dashboard](#-approving-trades-approve_each); the Risk Guardian checks it again with fresh prices, and only then does the trade execute.
 
 ---
@@ -121,6 +121,7 @@ Create a `.env` file or pass environment variables. Start from `env.example` (co
 | `EXECUTION_APPROVAL_MODE` | `auto` | `auto` executes immediately; `approve_each` (or any value other than `auto`) makes every order a proposal a human approves. |
 | `API_PORT` | `8000` | Port for the FastAPI/WebSocket server (`python app/api_server.py`). |
 | `API_CORS_ORIGINS` | `http://localhost:3000,http://127.0.0.1:3000` | Browser origins allowed to call the API; set it if the dashboard runs elsewhere. |
+| `API_OPERATOR_TOKEN` | unset | Operator secret for the API server only: when set, every `/api/` call but `/api/health` needs `Authorization: Bearer <it>`; live proposals can be approved only when it is set. |
 | `EXECUTION_DB_PATH`, `EXECUTION_SESSION_ID` | unset | Give both processes the same values so the API can approve the MCP server's proposals. |
 | `MAX_ORDER_AMOUNT` | unset | Largest live order (shares) the policy allows. A value that is not a number refuses every live order (`invalid_policy_config`). |
 | `ALLOW_TICKERS`, `ALLOW_BROKERAGES` | unset (all) | Comma-separated allowlists for live orders, checked when an order is proposed and again when it executes. |
@@ -171,7 +172,7 @@ To place live orders or fetch balances, configure brokerage credentials via env.
 * `ALPACA_API_SECRET=...`
 * `TRADIER_ACCESS_TOKEN=...`
 
-Live orders go out only with `PAPER_MODE=false` **and** `LIVE_TRADING_ENABLED=true`; `TRADING_HALTED=true` refuses them all. Each is sized against the brokerage account's equity. Alpaca orders go to your Alpaca **paper** account until you also set `ALPACA_PAPER=false` (Tradier likewise stays in its sandbox until `TRADIER_SANDBOX=false`), so you can test the whole live path without real money. Capabilities per brokerage: `docs/EXCHANGES.md`.
+Live orders go out only with `PAPER_MODE=false` **and** `LIVE_TRADING_ENABLED=true`; `TRADING_HALTED=true` refuses them all, closing orders included (flatten at the brokerage while halted). Each is sized against the brokerage account's equity. Alpaca orders fill now or not at all: they are sent only while the market is open (else `market_closed`), as `IOC` orders (filled now, a limit at its limit or better, the rest cancelled; a fractional market order goes out `DAY`, a fractional limit is refused), so none waits at the broker past the Risk Guardian's checks and the kill switch; the answer reports what filled. Alpaca orders go to your Alpaca **paper** account until you also set `ALPACA_PAPER=false` (Tradier likewise stays in its sandbox until `TRADIER_SANDBOX=false`), so you can test the whole live path without real money. Capabilities per brokerage: `docs/EXCHANGES.md`.
 
 Tools:
 * `place_stock_order(symbol, side, amount, price=0.0, order_type='market', exchange='alpaca', rationale='')` (`exchange`: alpaca, tradier, ibkr, schwab, etrade, robinhood)
@@ -184,6 +185,7 @@ With `EXECUTION_APPROVAL_MODE=approve_each`, every order that passes the Risk Gu
 
 * `GET /api/pending-approvals` lists the proposals with their orders, never their tokens (they expire after 120 s).
 * `POST /api/approve-trade {"request_id", "confirm_token", "approve": true}` re-runs the Risk Guardian with fresh prices and executes; `"approve": false` cancels. A refusal answers `409` with the reason; an unknown proposal `404`; a wrong token `403`. A proposal executes only in the mode it was made in: a paper proposal approved by an API running live is refused (`mode_mismatch`).
+* The `confirm_token` goes to the agent with the proposal, so on its own it does not prove that a person approved. Set `API_OPERATOR_TOKEN` for the API server (never for the MCP server): every `/api/` call except `/api/health` then needs `Authorization: Bearer <it>` (the dashboard asks for it once per tab), and **a live proposal is approved only when it is set** (`operator_token_required`).
 
 ---
 
