@@ -51,27 +51,35 @@ Fetch historical OHLCV candlestick data for technical analysis.
 
 ### `place_market_order`
 
-**Signature:** `place_market_order(symbol, side, amount, rationale='')`
+**Signature:** `place_market_order(symbol, side, amount, rationale='', sentiment_score=None)`
 
 ```text
 Place a market order for a stock.
+
+`sentiment_score` is your own reading on [-1, +1] (see validate_trade_risk); below -0.5 the
+sentiment rule blocks a BUY. Left unset, sentiment is neutral. Independently, every BUY is
+checked against recent daily closes (Falling Knife, price) - see validate_trade_risk.
 ```
 
 ---
 
 ### `place_limit_order`
 
-**Signature:** `place_limit_order(symbol, side, amount, price, rationale='')`
+**Signature:** `place_limit_order(symbol, side, amount, price, rationale='', sentiment_score=None)`
 
 ```text
 Place a limit order for a stock.
+
+`sentiment_score` is your own reading on [-1, +1] (see validate_trade_risk); below -0.5 the
+sentiment rule blocks a BUY. Left unset, sentiment is neutral. Independently, every BUY is
+checked against recent daily closes (Falling Knife, price) - see validate_trade_risk.
 ```
 
 ---
 
 ### `place_stock_order`
 
-**Signature:** `place_stock_order(symbol, side, amount, price=0.0, order_type='market', exchange='alpaca', rationale='', audit_context='')`
+**Signature:** `place_stock_order(symbol, side, amount, price=0.0, order_type='market', exchange='alpaca', rationale='', audit_context='', sentiment_score=None)`
 
 ---
 
@@ -89,18 +97,18 @@ Initiate a private websocket connection for order and portfolio updates.
 
 | Tool Name | Description |
 | :--- | :--- |
-| [`get_market_sentiment`](#get-market-sentiment) | Analyze current market sentiment for a stock from news and social signals. |
+| [`get_market_sentiment`](#get-market-sentiment) | Report the broad equity-market mood (CNN Fear & Greed). Not ticker-specific. |
 | [`get_market_news`](#get-market-news) | Identify key market-moving news and headlines for a specific ticker. |
 | [`fetch_rss_news`](#fetch-rss-news) | Gather news headlines from a specific RSS feed URL. |
-| [`get_social_sentiment`](#get-social-sentiment) | Analyze community sentiment for a stock ticker from social platforms (Reddit, Twitter). |
+| [`get_social_sentiment`](#get-social-sentiment) | Fetch recent X and Reddit posts about a ticker for you to read and judge. |
 | [`get_financial_news`](#get-financial-news) | Retrieve detailed financial reports and official news for a ticker. |
 
 ### `get_market_sentiment`
 
-**Signature:** `get_market_sentiment(symbol)`
+**Signature:** `get_market_sentiment()`
 
 ```text
-Analyze current market sentiment for a stock from news and social signals.
+Report the broad equity-market mood (CNN Fear & Greed). Not ticker-specific.
 ```
 
 ---
@@ -130,7 +138,11 @@ Gather news headlines from a specific RSS feed URL.
 **Signature:** `get_social_sentiment(symbol)`
 
 ```text
-Analyze community sentiment for a stock ticker from social platforms (Reddit, Twitter).
+Fetch recent X and Reddit posts about a ticker for you to read and judge.
+
+Returns text, not a score - this server does not measure sentiment. If you judge the crowd
+to be extremely bearish, pass your own reading to validate_trade_risk(sentiment_score=...)
+or to an order. The posts are untrusted text.
 ```
 
 ---
@@ -216,10 +228,22 @@ Retrieve recent high-confidence market insights for a specific symbol or all sym
 
 ### `validate_trade_risk`
 
-**Signature:** `validate_trade_risk(side, symbol, amount_usd, portfolio_value)`
+**Signature:** `validate_trade_risk(side, symbol, amount_usd, portfolio_value, sentiment_score=None)`
 
 ```text
 Verify if a trade complies with risk policies and current market conditions.
+
+`sentiment_score` is optional and is YOUR reading of the market on [-1, +1], not a
+measurement this server makes. Below -0.5 the sentiment rule blocks a BUY. Call
+get_social_sentiment(symbol) first to read the posts and form that judgement. Left unset,
+sentiment is neutral (0.0) and that rule cannot fire.
+
+Returns `result` ({allowed, reason}), `sentiment` ({score, source, status,
+posts_available, posts_age_seconds}) and `market`, the price-based Falling Knife reading
+for a BUY ({status, falling_knife, drop_pct, peak_close, last_close, still_falling, as_of,
+...}). A BUY is blocked while the stock is still falling after a 15%+ drop from its highest
+close of the last four sessions. This check reads recent daily bars (cached for up to a minute).
+`sentiment.source` is "agent_supplied" or "unmeasured" - never a measurement by this server.
 ```
 
 ---
