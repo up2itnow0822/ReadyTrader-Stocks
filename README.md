@@ -192,38 +192,45 @@ With `EXECUTION_APPROVAL_MODE=approve_each`, every order that passes the Risk Gu
 ## 🔌 Integration Guide
 
 ### Option A: Agent Zero (Recommended)
-To give Agent Zero these powers, add the following to your **Agent Zero Settings** (or `agent.yaml`).
-The MCP server key/name is arbitrary; we use `readytrader_stocks` in examples.
 
-Quick copy/paste file: `configs/agent_zero.mcp.yaml`.
+**With the Agent Zero plugin:** install [a0-readytrader-stocks-plugin](https://github.com/up2itnow0822/a0-readytrader-stocks-plugin)
+(2.0.0 or later) from Agent Zero's **Plugins** page (Git URL or ZIP). It installs this server into
+the plugin's folder, registers it with Agent Zero's MCP client in paper mode, and adds a paper-trading
+skill.
 
-**Via User Interface:**
-1.  Go to **Settings** -> **MCP Servers**.
-2.  Add a new server:
-    *   **Name**: `readytrader_stocks`
-    *   **Type**: `stdio`
-    *   **Command**: `docker`
-    *   **Args**: `run`, `-i`, `--rm`, `-v`, `readytrader-stocks-data:/app/data`, `-e`, `PAPER_MODE=true`, `readytrader-stocks`
+**By hand:** in Agent Zero, open **Settings → MCP/A2A → External MCP Servers** and add the server to
+the JSON there. Copy/paste file: `configs/agent_zero.mcp.json`.
 
-**Without Docker:** use your Python 3.12 environment's interpreter as the command, e.g. `/path/to/ReadyTrader-Stocks/.venv/bin/python`, with args `/path/to/ReadyTrader-Stocks/app/main.py`.
-
-**Via `agent.yaml`:**
-```yaml
-mcp_servers:
-  readytrader_stocks:
-    command: "docker"
-    args: 
-      - "run"
-      - "-i" 
-      - "--rm"
-      - "-v"
-      - "readytrader-stocks-data:/app/data"
-      - "-e"
-      - "PAPER_MODE=true"
-      - "readytrader-stocks"
+```json
+{
+  "mcpServers": {
+    "readytrader_stocks": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "readytrader-stocks-data:/app/data",
+        "-e",
+        "PAPER_MODE=true",
+        "readytrader-stocks"
+      ]
+    }
+  }
+}
 ```
-Prebuilt config: `configs/agent_zero.mcp.yaml`.
-*Restart Agent Zero after saving.*
+
+- The agent sees the tools as `readytrader_stocks.<tool>` (Agent Zero lowercases the server name and turns
+  other characters into `_`). Saving the settings reloads Agent Zero's MCP servers.
+- Agent Zero starts the server afresh for every call, so the `-v` volume is what keeps the paper
+  account between calls. Agent Zero must be able to run `docker` where it runs.
+- **Without Docker:** set `"command"` to the Python 3.12 interpreter of a ReadyTrader-Stocks checkout
+  with its requirements installed (e.g. `/path/to/ReadyTrader-Stocks/.venv/bin/python`) and `"args"` to
+  `["/path/to/ReadyTrader-Stocks/app/main.py"]`, paths Agent Zero can reach. Agent Zero passes the server
+  only a minimal environment, so put settings in the entry's `"env"` (for example
+  `{"PAPER_MODE": "true"}`) or in the checkout's `.env`.
 
 ### Option B: Generic MCP Client (Claude Desktop, etc.)
 Add this to your `mcp-server-config.json`:
