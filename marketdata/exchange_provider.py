@@ -4,6 +4,7 @@ import os
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 import pandas as pd
 import yfinance as yf
 
@@ -25,6 +26,17 @@ def _parse_timeframe_seconds(timeframe: str) -> Optional[int]:
     except Exception:
         return None
     return None
+
+def _priced_rows(df: pd.DataFrame) -> pd.DataFrame:
+    """Only the rows with a real price: finite, positive Open, High, Low and Close. Yahoo lists a session
+    whose data is not final (after the close, over a weekend) with NaN prices. Read as the last price, NaN
+    compared false against every risk limit and reached the paper ledger as a trade price."""
+    columns = [c for c in ("Open", "High", "Low", "Close") if c in df.columns]
+    if df.empty or not columns:
+        return df
+    prices = df[columns].apply(pd.to_numeric, errors="coerce").astype(float)
+    return df[(np.isfinite(prices) & (prices > 0)).all(axis=1)]
+
 
 def _seconds_to_next_boundary(period_sec: int) -> int:
     now = int(time.time())
@@ -60,9 +72,9 @@ class ExchangeProvider:
         dash (BRK-B); a dotted symbol with no data is retried in Yahoo's form. Exchange suffixes
         that Yahoo writes with a dot (SHOP.TO) still resolve on the first try.
         """
-        df = yf.Ticker(sym).history(**kwargs)
+        df = _priced_rows(yf.Ticker(sym).history(**kwargs))
         if df.empty and "." in sym:
-            df = yf.Ticker(sym.replace(".", "-")).history(**kwargs)
+            df = _priced_rows(yf.Ticker(sym.replace(".", "-")).history(**kwargs))
         return df
 
     def get_marketdata_capabilities(self, exchange_id: Optional[str] = None) -> Dict[str, Any]:
