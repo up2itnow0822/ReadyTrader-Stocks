@@ -44,6 +44,10 @@ dashboard (`frontend/`).
   every response carries `X-Request-ID` and security headers; errors never echo exception text.
 - Tools answer `{"ok": true, "data"}` or `{"ok": false, "error": {"code", "message", "data"}}`; a
   source that cannot answer is an error, never a payload. New codes go in `docs/ERRORS.md`.
+- A price is finite and positive or it is no price: provider rows without one are dropped
+  (`marketdata/exchange_provider._priced_rows`), orders value only real prices (`_real_price`), and the
+  paper engine refuses a non-finite price, amount or balance before it writes (NaN compares false
+  against every limit).
 - Default data files live in `<repo>/data/` via `common/paths.data_path` (never the working
   directory); `READYTRADER_DATA_DIR` and each `*_PATH` variable override.
 - Every variable the code reads is in `env.example`, with no inline comments or placeholder keys.
