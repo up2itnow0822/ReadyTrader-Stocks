@@ -4,7 +4,7 @@
   "branch": "uat/2026-09-24-stocks",
   "base_ref": "main@e389057",
   "started_at": "2026-09-24T07:08:16+00:00",
-  "updated_at": "2026-09-25T12:01:05+00:00",
+  "updated_at": "2026-09-26T00:18:43+00:00",
   "scope": "Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tools, paper trading, risk guardian, api_server approvals, docs/README/configs, CI, frontend build. Out: live brokerage orders (no credentials; live trading is a hard gate), Docker (no daemon in sandbox)",
   "surfaces": {},
   "journeys": [
@@ -6068,6 +6068,72 @@
       "notes": "",
       "updated_at": "2026-09-25T12:01:05+00:00",
       "status": "N/A"
+    },
+    {
+      "id": "BE-34",
+      "created_at": "2026-09-26T00:14:38+00:00",
+      "history": [
+        {
+          "at": "2026-09-26T00:14:38+00:00",
+          "event": "check",
+          "result": "FAIL",
+          "from": {
+            "result": null,
+            "status": null
+          },
+          "note": ""
+        },
+        {
+          "at": "2026-09-26T00:18:19+00:00",
+          "event": "fix",
+          "commit": "08797b4",
+          "note": "provider rows without a finite positive OHLC are dropped (quote falls back to the last real close); orders value only a finite positive price; the paper engine refuses non-finite price/amount/balance before writing"
+        },
+        {
+          "at": "2026-09-26T00:18:43+00:00",
+          "event": "retest",
+          "result": "PASS",
+          "note": "same Yahoo NaN row: get_stock_price answers the last real close (335.92); the 1-share order fills at 335.92 on paper; 100 shares are risk_blocked at a real reference price (335.9%); the next deposit works (New Balance 9665.08)"
+        }
+      ],
+      "section": "backend",
+      "title": "A quote without a price (Yahoo's unfinished daily bar) never reaches an order or the paper wallet",
+      "steps": "Saturday 00:14 UTC: Yahoo's last AAPL daily row has NaN Open/Close; deposit, quote, risk check, market order, deposit again",
+      "expected": "the quote falls back to the last real close (or answers no price); an order is valued at a real price or refused; the wallet stays intact",
+      "observed": "get_stock_price answers ok with last NaN; a 1-share market order passes the risk check (NaN compares false), debits NaN from USD (stored as NULL) and fails on the order insert (execution_error NOT NULL constraint); the wallet is then broken: the next order reads a 100% drawdown and deposit_paper_funds crashes (NoneType + float) until reset_paper_wallet",
+      "result": "FAIL",
+      "severity": "high",
+      "evidence": [
+        "uat/evidence/2026-09-24-01/BE-34.txt"
+      ],
+      "journey": "paper-trade a stock",
+      "notes": "",
+      "updated_at": "2026-09-26T00:14:38+00:00",
+      "status": "VERIFIED",
+      "fix": {
+        "description": "provider rows without a finite positive OHLC are dropped (quote falls back to the last real close); orders value only a finite positive price; the paper engine refuses non-finite price/amount/balance before writing",
+        "root_cause": "Yahoo's unfinished daily row carries NaN prices; NaN is truthy and compares false, so it passed every price check down to the ledger",
+        "files": [
+          "marketdata/exchange_provider.py",
+          "app/tools/trading.py",
+          "core/paper.py",
+          "AGENTS.md",
+          "CHANGELOG.md"
+        ],
+        "commit": "08797b4",
+        "regression_test": "tests/test_exchange_provider.py, tests/test_paper_metrics.py, tests/test_order_path.py (5 tests, fail on the old code)",
+        "at": "2026-09-26T00:18:19+00:00"
+      },
+      "retests": [
+        {
+          "at": "2026-09-26T00:18:43+00:00",
+          "result": "PASS",
+          "evidence": [
+            "uat/evidence/2026-09-24-01/BE-34-retest.txt"
+          ],
+          "observed": "same Yahoo NaN row: get_stock_price answers the last real close (335.92); the 1-share order fills at 335.92 on paper; 100 shares are risk_blocked at a real reference price (335.9%); the next deposit works (New Balance 9665.08)"
+        }
+      ]
     }
   ],
   "notes": [
