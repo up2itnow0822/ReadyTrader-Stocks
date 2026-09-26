@@ -6,10 +6,10 @@
 ## Run 2026-09-24-01 — ReadyTrader-Stocks
 
 - Branch: `uat/2026-09-24-stocks`  |  Base: `main@e389057`
-- Started: 2026-09-24T07:08:16+00:00  |  Updated: 2026-09-26T00:18:43+00:00
+- Started: 2026-09-24T07:08:16+00:00  |  Updated: 2026-09-26T02:18:16+00:00
 - Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tools, paper trading, risk guardian, api_server approvals, docs/README/configs, CI, frontend build. Out: live brokerage orders (no credentials; live trading is a hard gate), Docker (no daemon in sandbox)
 - Verdict: **CLEAN with BLOCKED items**
-- Totals: 110 checks · 25 pass · 84 fail (84 verified fixed, 0 open, 0 fixed-unverified, 0 regressed, 0 wontfix) · 1 blocked
+- Totals: 111 checks · 25 pass · 85 fail (85 verified fixed, 0 open, 0 fixed-unverified, 0 regressed, 0 wontfix) · 1 blocked
 
 ### User journeys exercised
 
@@ -32,10 +32,10 @@
 | integrations | 2 | 6 | 6 | 1 |
 | cli | 1 | 3 | 3 | 0 |
 | config | 1 | 11 | 11 | 0 |
-| docs | 1 | 8 | 8 | 0 |
+| docs | 1 | 9 | 9 | 0 |
 | regression | 5 | 0 | 0 | 0 |
 
-### Findings (85)
+### Findings (86)
 
 #### PRE-03 — Fresh install can import the MCP server (python app/main.py)  [FAIL · critical · **VERIFIED**]
 
@@ -712,6 +712,20 @@
   - Commit: `f9938df`
   - Regression test: tests/test_configs.py
 - Retest 1 (2026-09-24T08:44:53+00:00): **PASS** — both configs and all four README examples mount readytrader-stocks-data:/app/data; the config tests pass · evidence: [DOC-07-retest.txt](evidence/2026-09-24-01/DOC-07-retest.txt)
+
+#### DOC-08 — The README's Agent Zero integration works in current Agent Zero  [FAIL · medium · **VERIFIED**]
+
+- Section: `docs`
+- Steps: follow README Option A (Agent Zero) in Agent Zero v2.13; give its block to Agent Zero's MCP settings parser
+- Expected: a server entry Agent Zero starts
+- Observed: Option A points to 'Settings -> MCP Servers' and an 'agent.yaml' mcp_servers block. Agent Zero v2.13 keeps MCP servers in Settings -> MCP/A2A -> External MCP Servers as JSON ({"mcpServers": {...}}); agent.yaml is agent-profile metadata. The README's block yields no server in Agent Zero's parser (parse_config_string -> []), and configs/agent_zero.mcp.yaml has the same shape. The Agent Zero plugin, the supported path, is not mentioned.
+- Evidence: [DOC-08.txt](evidence/2026-09-24-01/DOC-08.txt)
+- Fix: README Option A points to the Agent Zero plugin first; the hand-made entry is the {"mcpServers": ...} JSON for Settings -> MCP/A2A -> External MCP Servers (configs/agent_zero.mcp.json, data volume included); the YAML moved to _deprecated/configs/
+  - Root cause: the Agent Zero section was written for an older Agent Zero (MCP servers in agent.yaml / a settings page that no longer exists)
+  - Files: `README.md`, `configs/agent_zero.mcp.json`, `_deprecated/configs/agent_zero.mcp.yaml`, `CHANGELOG.md`, `AGENTS.md`, `tests/test_configs.py`
+  - Commit: `715b644`
+  - Regression test: tests/test_configs.py::test_the_agent_zero_config_is_what_agent_zero_reads
+- Retest 1 (2026-09-26T02:18:16+00:00): **PASS** — the README's Agent Zero JSON block (identical to configs/agent_zero.mcp.json) parses in Agent Zero v2.13 to one server, readytrader_stocks (DOC-08-retest.txt); the README's without-Docker form, written into External MCP Servers of a real Agent Zero tree, connects with 20 tools and answers a price through Agent Zero's MCP client (this capture); the Docker form was not run (no Docker daemon here) · evidence: [DOC-08-retest-nodocker.txt](evidence/2026-09-24-01/DOC-08-retest-nodocker.txt)
 
 #### FE-05 — Mode indicator, approval control and API URL  [FAIL · medium · **VERIFIED**]
 
