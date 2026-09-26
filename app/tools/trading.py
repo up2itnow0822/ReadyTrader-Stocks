@@ -435,17 +435,26 @@ def _live_equity(exchange: str) -> Optional[float]:
     return equity if equity > 0 else None
 
 
+def _real_price(value: Any) -> Optional[float]:
+    """`value` as a finite, positive price, else None (NaN is truthy and compares false everywhere)."""
+    try:
+        price = float(value)
+    except (TypeError, ValueError):
+        return None
+    return price if math.isfinite(price) and price > 0 else None
+
+
 def _market_price(symbol: str, market: Dict[str, Any]) -> Optional[float]:
     """
     The latest price: the close the Falling Knife check already read, else the latest quote. An
     order is valued at its limit price, else at this (`amount` is a share count; valuing a market
     order at 1.0, as before, let any number of shares through the 5%-of-portfolio rule).
     """
-    if market.get("last_close"):
-        return float(market["last_close"])
+    close = _real_price(market.get("last_close"))
+    if close is not None:
+        return close
     try:
-        last = global_container.exchange_provider.fetch_ticker(symbol).get("last")
-        return float(last) if last else None
+        return _real_price(global_container.exchange_provider.fetch_ticker(symbol).get("last"))
     except Exception:
         return None
 
