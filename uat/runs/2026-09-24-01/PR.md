@@ -8,7 +8,7 @@ brokerage stubs only; no live order was placed.
 **Stacked on #3** (`feat/market-falling-knife`, the price-based Falling Knife). Review and merge #3
 first; this PR's diff is the UAT work on top of it.
 
-**Totals:** 110 checks · 25 pass · 84 fail (84 fixed & verified) · 1 blocked · 414 tests pass, ruff and bandit clean, dashboard lints and builds.
+**Totals:** 111 checks · 25 pass · 85 fail (85 fixed & verified) · 1 blocked · 415 tests pass, ruff and bandit clean, dashboard lints and builds.
 
 | Section | Pass | Fail | Verified fixed | Blocked |
 |---|---|---|---|---|
@@ -20,7 +20,7 @@ first; this PR's diff is the UAT work on top of it.
 | integrations | 2 | 6 | 6 | 1 |
 | cli | 1 | 3 | 3 | 0 |
 | config | 1 | 11 | 11 | 0 |
-| docs | 1 | 8 | 8 | 0 |
+| docs | 1 | 9 | 9 | 0 |
 | regression | 5 | 0 | 0 | 0 |
 
 ### What was broken and is now fixed
@@ -36,6 +36,7 @@ first; this PR's diff is the UAT work on top of it.
 - **high** BE-21 — The order path sizes trades against the real account → portfolio value from the paper engine / brokerage account; BUY fails closed without it (`880bfc4`)
 - **high** BE-23 — approve_each + live: an approved proposal still passes the live policy (ALLOW_TICKERS, MAX_ORDER_AMOUNT) → live_order_refusal (switches + ALLOW_*/MAX_ORDER_AMOUNT policy) runs when a live order is proposed and again at execution, including /api/approve-trade (`0beffae`)
 - **high** BE-34 — A quote without a price (Yahoo's unfinished daily bar) never reaches an order or the paper wallet → provider rows without a finite, positive price are dropped (the quote is the last real close); orders value only real prices; the paper engine refuses a non-finite price, amount or balance before it writes. Found through the Agent Zero plugin on a Saturday, when a NaN quote debited NaN and left the wallet unusable (`08797b4`)
+- **medium** DOC-08 — The README's Agent Zero integration works in current Agent Zero → Option A pointed to a "Settings -> MCP Servers" page and an `agent.yaml` block that Agent Zero v2.13 does not read (its MCP parser found no server); it now points to the Agent Zero plugin first and gives the JSON for Settings -> MCP/A2A -> External MCP Servers (`configs/agent_zero.mcp.json`), verified in a real Agent Zero tree. Found through the Agent Zero plugin (`715b644`)
 - **high** CF-03 — TRADING_HALTED kill switch halts live orders for any 'on' value → TRADING_HALTED halts on any value except empty/false/0/no/off (common/switches.kill_switch_on); PAPER_MODE stays on unless explicitly off, read the same way by config, the Alpaca client and the ws stream (`1f542bc`)
 - **high** CF-04 — EXECUTION_APPROVAL_MODE fails closed: a misspelt or commented value still requires approval → EXECUTION_APPROVAL_MODE: any value other than auto requires approval (common/switches.approval_mode); env.example has no inline comments (docker --env-file keeps them) (`1f542bc`)
 - **high** CF-05 — An unparseable MAX_ORDER_AMOUNT fails closed → MAX_ORDER_AMOUNT that is not a finite number raises invalid_policy_config; empty or unset means no limit (`0beffae`)
