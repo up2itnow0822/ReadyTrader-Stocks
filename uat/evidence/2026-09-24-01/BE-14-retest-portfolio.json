@@ -1,0 +1,36 @@
+{
+  "captured_at": "2026-09-24T07:29:44+0000",
+  "request": {
+    "method": "GET",
+    "url": "http://127.0.0.1:8769/api/portfolio",
+    "headers": {},
+    "body": ""
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "date": "Thu, 24 Sep 2026 07:29:44 GMT",
+      "server": "uvicorn",
+      "content-length": "79",
+      "content-type": "application/json",
+      "Connection": "close"
+    },
+    "body": "{\"balances\":{},\"metrics\":{\"equity\":0.0,\"daily_pnl_pct\":0.0,\"drawdown_pct\":0.0}}",
+    "elapsed_ms": 5,
+    "error": null
+  },
+  "expectations": [
+    {
+      "expectation": "status == 200",
+      "passed": true,
+      "detail": "got 200"
+    },
+    {
+      "expectation": "json path metrics.equity exists",
+      "passed": true,
+      "detail": "= 0.0"
+    }
+  ],
+  "ok": true,
+  "reason": ""
+}

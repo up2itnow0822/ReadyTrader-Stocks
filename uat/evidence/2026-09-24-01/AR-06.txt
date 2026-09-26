@@ -1,0 +1,11 @@
+$ (cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review3_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python probe_ioc_result.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|"event"'); grep -n -i 'ioc\|market hours\|while the market' app/tools/trading.py docs/TOOLS.md | head -5; echo '(end of IOC mentions in the tools and TOOLS.md)'
+# at 2026-09-25T11:41:24+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+{"data": {"result": {"client_order_id": "c1", "id": "o1", "qty": 10.0, "side": "buy", "status": "accepted", "symbol": "AAPL", "type": "limit"}, "venue": "alpaca"}, "ok": true}
+get_order_by_id called: False
+tool description mentions IOC: False
+app/tools/trading.py:322:    up to its expiry while the market moves.
+(end of IOC mentions in the tools and TOOLS.md)
+
+
+exit=0

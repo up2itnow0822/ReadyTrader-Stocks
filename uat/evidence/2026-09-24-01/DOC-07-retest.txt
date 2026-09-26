@@ -1,0 +1,13 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks && grep -n 'readytrader-stocks-data' configs/* README.md && .venv/bin/python -m pytest -p no:warnings -o addopts='' -q tests/test_configs.py 2>&1 | tail -1
+# at 2026-09-24T08:44:42+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+configs/agent_zero.mcp.yaml:9:      - "readytrader-stocks-data:/app/data"
+configs/claude_desktop.mcp-server-config.json:10:        "readytrader-stocks-data:/app/data",
+README.md:97:docker run --rm -i -v readytrader-stocks-data:/app/data readytrader-stocks
+README.md:204:    *   **Args**: `run`, `-i`, `--rm`, `-v`, `readytrader-stocks-data:/app/data`, `-e`, `PAPER_MODE=true`, `readytrader-stocks`
+README.md:218:      - "readytrader-stocks-data:/app/data"
+README.md:240:        "-v", "readytrader-stocks-data:/app/data",
+2 passed in 1.76s
+
+
+exit=0

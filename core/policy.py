@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Set
@@ -18,14 +19,24 @@ def _parse_csv_set(value: Optional[str]) -> Set[str]:
     return {v.strip().lower() for v in value.split(",") if v.strip()}
 
 
-def _env_float(name: str, default: Optional[float] = None) -> Optional[float]:
+def _env_limit(name: str) -> Optional[float]:
+    """An operator limit from the environment: unset or empty means no limit. A value that is not a
+    finite number ("1,000", "$500", "1O") refuses every live order until it is fixed, because a limit
+    the operator set must never silently disappear."""
     raw = os.getenv(name)
-    if raw is None or raw == "":
-        return default
+    if raw is None or raw.strip() == "":
+        return None
     try:
-        return float(raw)
+        value = float(raw)
     except ValueError:
-        return default
+        value = math.nan
+    if not math.isfinite(value):
+        raise PolicyError(
+            code="invalid_policy_config",
+            message=f"{name}={raw!r} is not a number, so no live order is sent until it is fixed or unset.",
+            data={name.lower(): raw},
+        )
+    return value
 
 
 class PolicyEngine:
@@ -113,7 +124,7 @@ class PolicyEngine:
         if ot == "limit" and (price is None or price <= 0):
             raise PolicyError("invalid_price", "price must be provided for limit orders", {"price": price})
 
-        max_amt = (overrides or {}).get("MAX_ORDER_AMOUNT", _env_float("MAX_ORDER_AMOUNT", None))
+        max_amt = (overrides or {}).get("MAX_ORDER_AMOUNT", _env_limit("MAX_ORDER_AMOUNT"))
         if max_amt is not None and amount > max_amt:
             raise PolicyError(
                 code="order_amount_too_large",

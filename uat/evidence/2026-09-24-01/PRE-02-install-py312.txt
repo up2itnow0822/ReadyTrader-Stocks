@@ -1,0 +1,9 @@
+$ bash -c 'python3.12 -m venv /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/pip install -q -r requirements-dev.txt 2>&1 | grep -v notice | tail -4; echo pip_exit=${PIPESTATUS[0]}; /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/pip check | tail -3; /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/pip show fastmcp | grep Version'
+# at 2026-09-24T07:09:17+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+pip_exit=0
+No broken requirements found.
+Version: 2.14.1
+
+
+exit=0

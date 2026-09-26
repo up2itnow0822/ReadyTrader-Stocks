@@ -1,0 +1,14 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx/selfapprove.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|│\|╭\|╰\|INFO\|transport\|stdio'; grep -n 'API_OPERATOR_TOKEN' docs/THREAT_MODEL.md README.md env.example | cut -c1-160
+# at 2026-09-24T21:06:40+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+agent's tool output keys: ['confirm_token', 'order_details', 'request_id', 'status']
+agent POSTs /api/approve-trade with its own token -> 403 {"detail":{"code":"operator_token_required","message":"Live proposals are approved only when API_OPERATOR_TOKEN is set for this API (and sent by the dashboard).
+orders the brokerage received: []
+docs/THREAT_MODEL.md:20:    - **Execution Approval Mode**: Set `EXECUTION_APPROVAL_MODE=approve_each` to make every order a proposal. The proposal's `confirm_to
+docs/THREAT_MODEL.md:41:5.  **Local API only**: keep the API server on `127.0.0.1` (the default) and set `API_OPERATOR_TOKEN` for it (not for the MCP server): w
+README.md:124:| `API_OPERATOR_TOKEN` | unset | Operator secret for the API server only: when set, every `/api/` call but `/api/health` needs `Authorization: Bea
+README.md:188:* The `confirm_token` goes to the agent with the proposal, so on its own it does not prove that a person approved. Set `API_OPERATOR_TOKEN` for th
+env.example:116:# API_OPERATOR_TOKEN=
+
+
+exit=0

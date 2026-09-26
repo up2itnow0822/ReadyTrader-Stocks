@@ -1,0 +1,15 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p3_paper_limits.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|│\|╭\|╰\|INFO\|transport\|stdio' | sed -n '/^(d1)/,$p'
+# at 2026-09-24T21:06:25+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+(d1) week-old snapshots, account drifted -6% during that week, no snapshot today
+    Paper Trade Executed: BUY 100 AAPL @ 100
+   snapshots: [('2026-09-10T21:06:27.476266+00:00', 15000.0), ('2026-09-14T09:06:27.476266+00:00', 15000.0), ('2026-09-17T21:06:27.476266+00:00', 14100.0)]
+   today, no trade yet: equity(ledger)=14,100.00 daily_pnl=+0.00% drawdown=6.00%
+   first BUY today, 1 sh: pre_trade_check BUY 1 -> allowed=True (Trade looks safe.)
+
+(d2) last snapshot a week old, price drifted -6% since, no trade
+   today, no trade yet: equity(ledger)=15,000.00 daily_pnl=+0.00% drawdown=0.00%
+   first BUY today, 1 sh: pre_trade_check BUY 1 -> allowed=True (Trade looks safe.)
+
+
+exit=0

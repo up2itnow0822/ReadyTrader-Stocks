@@ -1,0 +1,9 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/policy_codes.sh
+# at 2026-09-24T08:00:32+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL place_market_order {"symbol": "AAPL", "side": "sell", "amount": 5} -> { "error": { "code": "execution_error", "data": {}, "message": "" }, "ok": false }
+CALL place_market_order {"symbol": "MSFT", "side": "sell", "amount": 1} -> { "error": { "code": "execution_error", "data": {}, "message": "" }, "ok": false }
+CALL place_stock_order {"symbol": "AAPL", "side": "sell", "amount": 1, "exchange": "tradier"} -> { "error": { "code": "execution_error", "data": {}, "message": "" }, "ok": false }
+
+
+exit=0

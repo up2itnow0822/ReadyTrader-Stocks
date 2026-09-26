@@ -1,0 +1,15 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/api_policy.sh; echo '--- approval-time re-check (proposer without the policy)'; bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/api_policy_approval.sh
+# at 2026-09-24T08:06:52+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+health: {"status":"ok","mode":"live"}
+propose {"symbol":"MSFT","side":"sell","amount":1} -> "code": "ticker_not_allowed" 
+propose {"symbol":"AAPL","side":"sell","amount":500} -> "code": "order_amount_too_large" 
+--- approval-time re-check (proposer without the policy)
+health: {"status":"ok","mode":"live"}
+propose {"symbol":"MSFT","side":"sell","amount":1} -> "status": "pending_approval" 
+approve -> {"detail":{"code":"ticker_not_allowed","message":"Ticker 'MSFT' is not allowlisted.","data":{"symbol":"MSFT","allow_tickers":["aapl"]}}} HTTP 409
+propose {"symbol":"AAPL","side":"sell","amount":500} -> "status": "pending_approval" 
+approve -> {"detail":{"code":"order_amount_too_large","message":"Order amount 500.0 exceeds MAX_ORDER_AMOUNT=10.0.","data":{"amount":500.0,"max_order_amount":10.0}}} HTTP 409
+
+
+exit=0

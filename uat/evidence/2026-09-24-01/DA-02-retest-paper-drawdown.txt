@@ -1,0 +1,10 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/paper_dd.py
+# at 2026-09-24T07:34:19+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+after 6 buys: {'daily_pnl_pct': -2.9103830456733706e-16, 'drawdown_pct': 2.9103830456733706e-16, 'max_drawdown_pct': 2.9103830456733706e-16} equity 100000.0
+after selling at cost: {'daily_pnl_pct': -2.9103830456733706e-16, 'drawdown_pct': 2.9103830456733706e-16, 'max_drawdown_pct': 2.9103830456733706e-16} equity 100000.0
+after a resting limit BUY: equity 100000.0
+after restart: USD 96000.0 AAPL 0.0
+
+
+exit=0

@@ -4,6 +4,10 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
 
+class MarketClosed(RuntimeError):
+    """The brokerage's market is closed (or its clock cannot be read): the order was not sent."""
+
+
 class IBrokerage(ABC):
     """
     Interface for brokerage services.

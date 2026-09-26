@@ -1,0 +1,8 @@
+$ bash -c 'timeout 15 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python app/api_server.py 2>&1 | tail -2'
+# at 2026-09-24T07:25:18+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+    from app.core.config import settings
+ModuleNotFoundError: No module named 'app'
+
+
+exit=0

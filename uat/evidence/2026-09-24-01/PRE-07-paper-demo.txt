@@ -1,0 +1,22 @@
+$ bash -c 'timeout 240 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python examples/paper_quick_demo.py 2>&1 | tail -15; echo exit=${PIPESTATUS[0]}'
+# at 2026-09-24T07:11:30+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+Order Placed: BUY 10.0 AAPL @ 150.0. ID: 1
+
+3) Simulate market moving down and fill open orders
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/examples/paper_quick_demo.py", line 67, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/examples/paper_quick_demo.py", line 40, in main
+    fill_msgs = engine.check_open_orders("AAPL", current_price=149.0)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/core/paper.py", line 245, in check_open_orders
+    self._set_asset_price_usd(quote, 1.0 if quote.upper() in {"USDT", "USDC", "DAI", "USD"} else 1.0)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/core/paper.py", line 78, in _set_asset_price_usd
+    c.execute(
+sqlite3.OperationalError: database is locked
+exit=1
+
+
+exit=0

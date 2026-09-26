@@ -1,0 +1,10 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/st_fe_approvals.sh FE-08-retest
+# at 2026-09-24T15:39:14+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 2} -> { "data": { "confirm_token": "<redacted>", "order_details": { "amount": 2.0, "exchange": "alpaca", "order_type": "market", "paper_mode": true, "price": 0.0, "rationale": "", "sentiment_score": null, "side": "buy", "symbol": "AAPL" }, "req
+API pending: {"pending":[{"request_id":"ad009a41c76e28868ac60d99","kind":"stock_order","created_at":1790264361.3400633,"expires_at":1790264481.3400633,"order":{"symbol":"AAPL","side":"buy","amount":2.0,"order_type":"market","price":0.0,"exchange":"alpaca","rationale":"","paper_mode":true}}]}
+snap exit=1
+Guard Rail card text: Guard Rail 1 BUY 2 AAPL market - paper account ID: ad009a41... Approve Reject self.__next_r="xsbm2zpcvWqsQ7NB32oX2" (self.__next_f=self.__next_f||[]).push([0]) self.__next_f.push([1,"5:I[\"[project]/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-node.js [app-client] (ecmascript)
+
+
+exit=0

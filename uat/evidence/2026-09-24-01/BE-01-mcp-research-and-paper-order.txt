@@ -1,0 +1,12 @@
+$ bash -c 'PROBE_MAX=260 timeout 300 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/mcp_call.py . "[\"app/main.py\"]" "{\"PAPER_MODE\":\"true\",\"PAPER_DB_PATH\":\"/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stocks_paper_be.db\"}" "[[\"get_stock_price\",{\"symbol\":\"AAPL\"}],[\"fetch_ohlcv\",{\"symbol\":\"AAPL\",\"timeframe\":\"1d\",\"limit\":2}],[\"get_market_regime\",{\"symbol\":\"AAPL\"}],[\"deposit_paper_funds\",{\"asset\":\"USD\",\"amount\":100000}],[\"place_market_order\",{\"symbol\":\"AAPL\",\"side\":\"buy\",\"amount\":60}]]" 2>&1 | grep -E "^(TOOLS|CALL)"'
+# at 2026-09-24T07:22:43+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, get_market_regime, get_market_sentiment, get_multiple_prices, get_social_sentiment, get_stock_price, place_limit_order, place_market_order, place_stock_order, post_market_insight, reset_paper_wallet, run_backtest_simulation, run_synthetic_stress_test, start_brokerage_private_ws, validate_trade_risk
+CALL get_stock_price {"symbol": "AAPL"} -> { "error": { "code": "market_data_error", "data": { "symbol": "AAPL" }, "message": "'MarketDataBus' object has no attribute 'get_ticker'" }, "ok": false }
+CALL fetch_ohlcv {"symbol": "AAPL", "timeframe": "1d", "limit": 2} -> { "data": { "history": [ { "close": 339.75, "high": 345.3399963378906, "low": 338.75, "open": 340.1400146484375, "timestamp": "0", "volume": 40711800.0 }, { "close": 337.0199890136719, "high": 341.79998779296875, "low": 335.5, "open": 341.0799865722656, "times
+CALL get_market_regime {"symbol": "AAPL"} -> { "data": { "result": { "adx": 19.45, "atr_pct": 2.12, "direction": "SIDEWAYS", "regime": "VOLATILE_RANGING", "summary": "Market is VOLATILE_RANGING (SIDEWAYS). ADX: 19.5, Volatility: 2.1%" }, "symbol": "AAPL", "timeframe": "1d" }, "ok": true }
+CALL deposit_paper_funds {"asset": "USD", "amount": 100000} -> { "data": { "message": "Deposited 100000.0 USD. New Balance: 100000.0" }, "ok": true }
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 60} -> ISERROR Error calling tool 'place_market_order': Price for AAPL is unknown and pulse price was not provided. Execution failed (Zero-Mock Policy).
+
+
+exit=0

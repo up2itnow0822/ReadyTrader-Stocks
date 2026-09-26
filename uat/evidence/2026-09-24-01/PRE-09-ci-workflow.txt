@@ -1,0 +1,30 @@
+$ bash -c 'cat .github/workflows/ci.yml; echo ---; grep -c -E "pytest|python" .github/workflows/ci.yml; ls package.json 2>&1'
+# at 2026-09-24T07:17:46+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Use Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: npm install --if-present || true
+      - name: Run tests
+        run: npm test --if-present || echo "No tests configured yet"
+---
+0
+ls: cannot access 'package.json': No such file or directory
+
+
+exit=2

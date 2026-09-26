@@ -1,0 +1,22 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/bool_all_params.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks app.main 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|"event"'
+# at 2026-09-25T11:40:09+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+ACCEPTED fetch_ohlcv.limit=true -> { "error": { "code": "history_error", "data": { "symbol": "x" }, "message": "Error fetching data: ('data_not_f
+refused  place_market_order.amount=true -> 1 validation error for call[place_market_order] amount Value error, a number is required, not true/false [type
+refused  place_market_order.sentiment_score=true -> 1 validation error for call[place_market_order] sentiment_score Value error, a number is required, not true/fa
+refused  place_limit_order.amount=true -> 1 validation error for call[place_limit_order] amount Value error, a number is required, not true/false [type=
+refused  place_limit_order.price=true -> 1 validation error for call[place_limit_order] price Value error, a number is required, not true/false [type=v
+refused  place_limit_order.sentiment_score=true -> 1 validation error for call[place_limit_order] sentiment_score Value error, a number is required, not true/fal
+refused  place_stock_order.amount=true -> 1 validation error for call[place_stock_order] amount Value error, a number is required, not true/false [type=
+refused  place_stock_order.price=true -> 1 validation error for call[place_stock_order] price Value error, a number is required, not true/false [type=v
+refused  place_stock_order.sentiment_score=true -> 1 validation error for call[place_stock_order] sentiment_score Value error, a number is required, not true/fal
+refused  deposit_paper_funds.amount=true -> 1 validation error for call[deposit_paper_funds] amount Value error, a number is required, not true/false [typ
+refused  validate_trade_risk.amount_usd=true -> 1 validation error for call[validate_trade_risk] amount_usd Value error, a number is required, not true/false 
+refused  validate_trade_risk.portfolio_value=true -> 1 validation error for call[validate_trade_risk] portfolio_value Value error, a number is required, not true/f
+refused  validate_trade_risk.sentiment_score=true -> 1 validation error for call[validate_trade_risk] sentiment_score Value error, a number is required, not true/f
+ACCEPTED post_market_insight.confidence=true -> { "data": { "insight": { "agent_id": "x", "confidence": 1.0, "expires_at_ms": 1790340014778, "insight_id": "51
+ACCEPTED post_market_insight.ttl_seconds=true -> { "data": { "insight": { "agent_id": "x", "confidence": 1.0, "expires_at_ms": 1790336415783, "insight_id": "2b
+numeric parameters: 15; true refused: 12; true accepted: 3
+
+
+exit=0

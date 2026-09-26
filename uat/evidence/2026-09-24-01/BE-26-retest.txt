@@ -1,0 +1,17 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/cors.sh
+# at 2026-09-24T08:13:49+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+proposal 9db9d2e607eda9846b0de669
+--- GET /api/pending-approvals from Origin https://evil.example
+{"pending":[{"request_id":"9db9d2e607eda9846b0de669","kind":"stock_order","created_at":1790237634.4791055,"expires_at":1790237754.4791055}]}
+--- preflight for POST /api/approve-trade from Origin https://evil.example
+HTTP/1.1 400 Bad Request
+access-control-allow-methods: GET, POST
+access-control-max-age: 600
+access-control-allow-headers: Accept, Accept-Language, Content-Language, Content-Type, content-type
+--- cancel without the confirm_token
+{"ok":false} HTTP 200
+pending after: {"pending":[{"request_id":"9db9d2e607eda9846b0de669","kind":"stock_order","created_at":1790237634.4791055,"expires_at":1790237754.4791055}]}
+
+
+exit=0

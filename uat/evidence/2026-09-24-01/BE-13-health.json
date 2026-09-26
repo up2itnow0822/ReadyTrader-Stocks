@@ -1,0 +1,36 @@
+{
+  "captured_at": "2026-09-24T07:25:26+0000",
+  "request": {
+    "method": "GET",
+    "url": "http://127.0.0.1:8766/api/health",
+    "headers": {},
+    "body": ""
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "date": "Thu, 24 Sep 2026 07:25:26 GMT",
+      "server": "uvicorn",
+      "content-length": "30",
+      "content-type": "application/json",
+      "Connection": "close"
+    },
+    "body": "{\"status\":\"ok\",\"mode\":\"paper\"}",
+    "elapsed_ms": 4,
+    "error": null
+  },
+  "expectations": [
+    {
+      "expectation": "status == 200",
+      "passed": true,
+      "detail": "got 200"
+    },
+    {
+      "expectation": "json mode == 'paper'",
+      "passed": true,
+      "detail": "got 'paper'"
+    }
+  ],
+  "ok": true,
+  "reason": ""
+}

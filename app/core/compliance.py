@@ -4,6 +4,8 @@ import logging
 import time
 from typing import Any, Dict
 
+from common.paths import data_path, ensure_parent
+
 logger = logging.getLogger(__name__)
 
 class ComplianceLedger:
@@ -11,9 +13,8 @@ class ComplianceLedger:
     Centralized auditor for all trading decisions.
     Ensures non-repudiable logging of Rationale -> Risk -> Execution.
     """
-    def __init__(self, log_path: str = "data/compliance_audit.log"):
-        self.log_path = log_path
-        # Ensure directory exists is handled by the caller or setup
+    def __init__(self, log_path: str | None = None):
+        self.log_path = log_path or data_path("compliance_audit.log")
         
     def record_event(self, event_type: str, data: Dict[str, Any]):
         """
@@ -27,6 +28,7 @@ class ComplianceLedger:
         }
         
         log_line = json.dumps(entry)
+        ensure_parent(self.log_path)
         with open(self.log_path, "a") as f:
             f.write(log_line + "\n")
             

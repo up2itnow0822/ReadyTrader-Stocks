@@ -1,0 +1,11 @@
+$ bash -c 'export INSIGHT_DB_PATH=/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/insights2.db; PROBE_MAX=400 timeout 120 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/mcp_call.py . "[\"app/main.py\"]" "{}" "$(cat /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/insight_calls3.json)" 2>&1 | grep ^CALL; sleep 2; echo "== after the 1 s TTL"; PROBE_MAX=300 timeout 120 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/mcp_call.py . "[\"app/main.py\"]" "{}" "[[\"get_latest_insights\",{\"symbol\":\"MSFT\"}]]" 2>&1 | grep ^CALL'
+# at 2026-09-24T07:35:22+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL post_market_insight {"symbol": "TSLA", "agent_id": "agent-b", "signal": "sideways-ish", "confidence": 7.5, "reasoning": "x"} -> { "error": { "code": "invalid_request", "data": {}, "message": "signal must be one of bullish, bearish, neutral, got 'sideways-ish'" }, "ok": false }
+CALL post_market_insight {"symbol": "MSFT", "agent_id": "agent-c", "signal": "neutral", "confidence": 0.4, "reasoning": "short-lived", "ttl_seconds": 1} -> { "data": { "insight": { "agent_id": "agent-c", "confidence": 0.4, "expires_at_ms": 1790235326362, "insight_id": "485a16f7fe5ef3ca", "meta": {}, "reasoning": "short-lived", "signal": "neutral", "symbol": "MSFT", "timestamp_ms": 1790235325362 } }, "ok": true }
+CALL get_latest_insights {"symbol": "MSFT"} -> { "data": { "insights": [ { "agent_id": "agent-c", "confidence": 0.4, "expires_at_ms": 1790235326362, "insight_id": "485a16f7fe5ef3ca", "meta": {}, "reasoning": "short-lived", "signal": "neutral", "symbol": "MSFT", "timestamp_ms": 1790235325362 } ] }, "ok": true }
+== after the 1 s TTL
+CALL get_latest_insights {"symbol": "MSFT"} -> { "data": { "insights": [] }, "ok": true }
+
+
+exit=0

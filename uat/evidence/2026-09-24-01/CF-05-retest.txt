@@ -1,0 +1,14 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/policy_limit.sh
+# at 2026-09-24T08:06:28+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+MAX_ORDER_AMOUNT=[10]
+CALL place_market_order {"symbol": "AAPL", "side": "sell", "amount": 5000} -> { "error": { "code": "order_amount_too_large", "data": { "amount": 5000.0, "max_order_amount": 10.0 }, "message": "Order amount 5000.0 exceeds MAX_ORDER_AMOUNT=10.0." }, "ok": false }
+MAX_ORDER_AMOUNT=[1,000]
+CALL place_market_order {"symbol": "AAPL", "side": "sell", "amount": 5000} -> { "error": { "code": "invalid_policy_config", "data": { "max_order_amount": "1,000" }, "message": "MAX_ORDER_AMOUNT='1,000' is not a number, so no live order is sent until it is fixed or unset." }, "ok": false }
+MAX_ORDER_AMOUNT=[$500]
+CALL place_market_order {"symbol": "AAPL", "side": "sell", "amount": 5000} -> { "error": { "code": "invalid_policy_config", "data": { "max_order_amount": "$500" }, "message": "MAX_ORDER_AMOUNT='$500' is not a number, so no live order is sent until it is fixed or unset." }, "ok": false }
+MAX_ORDER_AMOUNT=[1O]
+CALL place_market_order {"symbol": "AAPL", "side": "sell", "amount": 5000} -> { "error": { "code": "invalid_policy_config", "data": { "max_order_amount": "1O" }, "message": "MAX_ORDER_AMOUNT='1O' is not a number, so no live order is sent until it is fixed or unset." }, "ok": false }
+
+
+exit=0

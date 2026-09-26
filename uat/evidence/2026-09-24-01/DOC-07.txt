@@ -1,0 +1,14 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks && grep -n 'run\|--rm\|-v\|volume' configs/agent_zero.mcp.yaml configs/claude_desktop.mcp-server-config.json; grep -n 'WORKDIR\|mkdir -p data\|VOLUME' Dockerfile; grep -n 'persistent balances' README.md; .venv/bin/python -c 'import sys; sys.path.insert(0,"."); from common.paths import data_path; print("paper ledger inside the image:", data_path("paper.db").replace(sys.path[0] if False else "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks", "/app"))'
+# at 2026-09-24T08:43:55+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+configs/agent_zero.mcp.yaml:5:      - "run"
+configs/agent_zero.mcp.yaml:7:      - "--rm"
+configs/claude_desktop.mcp-server-config.json:6:        "run",
+configs/claude_desktop.mcp-server-config.json:8:        "--rm",
+3:WORKDIR /app
+24:RUN mkdir -p data
+65:*   **📉 Paper Trading Simulator**: a zero-risk practice account with persistent balances; market orders fill at the latest price and limit orders only when marketable.
+paper ledger inside the image: /app/data/paper.db
+
+
+exit=0

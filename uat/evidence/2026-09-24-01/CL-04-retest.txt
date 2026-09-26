@@ -1,0 +1,12 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/st_wizard.sh
+# at 2026-09-24T12:29:03+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+Setup Scan Complete!
+Next steps:
+1. Open .env; paper mode needs no keys. For live trading see the README.
+2. Read docs/SENTIMENT.md for intelligence feed setup.
+3. Run python app/main.py to start the MCP server (your MCP client can launch it).
+
+
+
+exit=0

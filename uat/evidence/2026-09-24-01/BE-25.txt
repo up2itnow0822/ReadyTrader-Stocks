@@ -1,0 +1,9 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks && PROBE_MAX=400 timeout 200 .venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/mcp_call.py . '["app/main.py"]' '{}' "$(cat /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/backtest_err.json)" 2>/dev/null | grep '^CALL'
+# at 2026-09-24T08:08:47+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL run_backtest_simulation {"strategy_code": "import os\nos.system('id')", "symbol": "AAPL", "timeframe": "1d"} -> { "data": { "result": { "error": "Strategy Compilation Error: Importing 'os' is forbidden." } }, "ok": true }
+CALL run_backtest_simulation {"strategy_code": "x = 1", "symbol": "AAPL", "timeframe": "1d"} -> { "data": { "result": { "error": "Strategy code must define 'def on_candle(close, rsi, state):' or similar" } }, "ok": true }
+CALL run_backtest_simulation {"strategy_code": "def on_candle(close, rsi, state):\n    return 1/0\n", "symbol": "AAPL", "timeframe": "1d"} -> { "data": { "result": { "error": "Runtime error in strategy at row 13: division by zero" } }, "ok": true }
+
+
+exit=0

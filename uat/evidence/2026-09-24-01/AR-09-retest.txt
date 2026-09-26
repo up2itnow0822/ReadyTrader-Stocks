@@ -1,0 +1,35 @@
+$ docker volume rm rt-stocks-upgrade-probe >/dev/null; echo '### 1. a fresh volume written by the old image, then the new image'; bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/volume_upgrade.sh /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/st_head readytrader-stocks rt-stocks-upgrade-probe; echo '### 2. the RUNBOOK step, then the new image'; bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/volume_upgrade.sh /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/st_head readytrader-stocks rt-stocks-upgrade-probe fix
+# at 2026-09-25T11:54:58+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+### 1. a fresh volume written by the old image, then the new image
+old image (7555823 ): sha256:accb678217ea6
+new image (eeca691 ): sha256:dc287ef0ac02a
+--- the old image (root) on volume rt-stocks-upgrade-probe:
+CALL deposit_paper_funds {"asset": "USD", "amount": 1000} -> { "data": { "message": "Deposited 1000.0 USD. New Balance: 1000.0" }, "ok": true }
+--- owners in the volume:
+-rw-r--r-- 1 0 0 20480 Sep 25 11:55 insights.db
+-rw-r--r-- 1 0 0 32768 Sep 25 11:55 paper.db
+-rw-r--r-- 1 0 0 16384 Sep 25 11:55 strategies.db
+--- the new image (uid 10001) on the same volume:
+    its start-up on this volume (last lines of stderr):
+sqlite3.OperationalError: attempt to write a readonly database
+    (none above = started cleanly)
+### 2. the RUNBOOK step, then the new image
+new image (eeca691 ): sha256:b4a79e7b94e52
+--- owners in the volume:
+-rw-r--r-- 1 0 0 20480 Sep 25 11:55 insights.db
+-rw-r--r-- 1 0 0 32768 Sep 25 11:55 paper.db
+-rw-r--r-- 1 0 0 16384 Sep 25 11:55 strategies.db
+RUNBOOK: docker run --rm --user 0 -v readytrader-stocks-data:/app/data --entrypoint chown readytrader-stocks -R 10001:10001 /app/data
+chown exit=0
+--- owners after:
+-rw-r--r-- 1 10001 10001 20480 Sep 25 11:55 insights.db
+-rw-r--r-- 1 10001 10001 32768 Sep 25 11:55 paper.db
+-rw-r--r-- 1 10001 10001 16384 Sep 25 11:55 strategies.db
+--- the new image (uid 10001) on the same volume:
+CALL deposit_paper_funds {"asset": "USD", "amount": 1000} -> { "data": { "message": "Deposited 1000.0 USD. New Balance: 2000.0" }, "ok": true }
+    its start-up on this volume (last lines of stderr):
+    (none above = started cleanly)
+
+
+exit=0

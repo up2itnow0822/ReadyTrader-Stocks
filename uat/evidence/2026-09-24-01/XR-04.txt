@@ -1,0 +1,12 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p3_paper_limits.py 2>&1 | sed -n '/^(b)/,/^(c)/p'
+# at 2026-09-24T20:51:14+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+(b) do the metrics lag the market? (bought at 100, now 80, no trade since)
+   after the fall, no trade: equity(ledger)=10,000.00 daily_pnl=+0.00% drawdown=0.00%
+   first BUY after the fall (5 sh @80 = 400 = 5% of true equity): pre_trade_check BUY 5 -> allowed=True (Trade looks safe.)
+   BUY 6 sh (480 = 6% of true 8,000; 4.8% of stale 10,000): pre_trade_check BUY 6 -> allowed=True (Trade looks safe.)
+
+(c) small deposit, small dip, big top-up, tiny loss
+
+
+exit=0

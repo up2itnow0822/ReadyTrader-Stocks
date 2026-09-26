@@ -1,0 +1,23 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python -c "
+import _boot; _boot.boot('xr02')
+import json, app.tools.trading as t
+from app.core.config import settings
+from app.core.container import global_container
+import market_bars as mb
+t._fetch_daily_bars=lambda s: mb.calm(); last=mb.calm()[-1][4]
+global_container.exchange_provider.fetch_ticker=lambda s: {'symbol': s, 'last': last}
+global_container.brokerages['alpaca']=_boot.Recorder()
+settings.PAPER_MODE=False; settings.LIVE_TRADING_ENABLED=True; settings.TRADING_HALTED=False
+print('live pre_trade_check inactive_rules:', t.pre_trade_check('AAPL','buy',1.0)['inactive_rules'])
+" 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|│\|╭\|╰\|INFO\|transport\|stdio'; cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks; grep -n 'inactive_rules' README.md docs/THREAT_MODEL.md docs/SENTIMENT.md RUNBOOK.md docs/ERRORS.md | cut -c1-200
+# at 2026-09-24T21:06:16+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+live pre_trade_check inactive_rules: ['daily_loss_limit', 'max_drawdown']
+README.md:41:3.  **Governance:** The Risk Guardian checks the order against your account: no more than 5% of the account per trade (valued at the latest market price, never at a price the order carrie
+docs/THREAT_MODEL.md:21:    - **Position size**: the Risk Guardian refuses any order that adds exposure worth over 5% of the account's equity (valued at the latest market price, never at a price the o
+docs/SENTIMENT.md:93:- **The order path is no longer a bypass.** It reads the same sentiment value as the validation tool, and now passes the paper account's daily loss and drawdown, which it never di
+RUNBOOK.md:65:    brokerage account has no loss history here): `inactive_rules` in the check says so.
+docs/ERRORS.md:27:  read the paper account (deposits are not gains); live orders list them in `data.inactive_rules`.
+
+
+exit=0

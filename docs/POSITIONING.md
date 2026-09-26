@@ -9,7 +9,7 @@
 
 ### 1) Safety-first automation
 - **Paper mode default** (`PAPER_MODE=true`)
-- **Live trading opt-in** (`LIVE_TRADING_ENABLED=true` + consent)
+- **Live trading opt-in** (`PAPER_MODE=false` + `LIVE_TRADING_ENABLED=true`; brokerage paper/sandbox accounts by default)
 - **Kill switch** (`TRADING_HALTED=true`)
 - **Approval mode** (`approve_each`)
 - **Central policy engine** (allowlists/limits)
@@ -23,10 +23,8 @@ Built-in workflows for disciplined operators:
 - synthetic stress testing
 - market regime signals
 
-### 4) Composable market data
-- `yfinance` fallback
-- `alpaca` websocket-first public streams (opt-in)
-- user-ingested snapshots
+### 4) Market data without keys
+- `yfinance` prices and candles; no brokerage key needed to research or paper trade
 
 ---
 
@@ -34,7 +32,7 @@ Built-in workflows for disciplined operators:
 
 ### vs “Simple Stock APIs”
 ReadyTrader-Stocks adds:
-- trade governance (consent + kill switch)
+- trade governance (approval mode + kill switch)
 - policy limits
 - synthetic stress lab
 - agent-friendly structured outputs

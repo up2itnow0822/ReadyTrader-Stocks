@@ -1,0 +1,13 @@
+$ bash -c 'timeout 30 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/python app/main.py </dev/null 2>&1 | tail -6; echo exit=${PIPESTATUS[0]}'
+# at 2026-09-24T07:10:25+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+    from fastmcp import FastMCP
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/lib/python3.12/site-packages/fastmcp/__init__.py", line 5, in <module>
+    from fastmcp.settings import Settings
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/lib/python3.12/site-packages/fastmcp/settings.py", line 12, in <module>
+    from pydantic_settings import (
+ModuleNotFoundError: No module named 'pydantic_settings'
+exit=1
+
+
+exit=0

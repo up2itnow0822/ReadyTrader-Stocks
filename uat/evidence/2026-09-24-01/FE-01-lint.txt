@@ -1,0 +1,11 @@
+$ bash -c 'cd frontend && npm run lint 2>&1 | tail -25; echo exit=${PIPESTATUS[0]}'
+# at 2026-09-24T07:18:09+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+
+> frontend@0.1.0 lint
+> eslint
+
+exit=0
+
+
+exit=0

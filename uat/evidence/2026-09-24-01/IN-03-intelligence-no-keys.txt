@@ -1,0 +1,11 @@
+$ bash -c 'env -u TWITTER_BEARER_TOKEN -u REDDIT_CLIENT_ID -u NEWSAPI_KEY -u ALPHAVANTAGE_API_KEY PROBE_MAX=300 timeout 200 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/mcp_call.py . "[\"app/main.py\"]" "{}" "$(cat /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/intel_calls.json)" 2>&1 | grep ^CALL'
+# at 2026-09-24T07:38:24+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL get_social_sentiment {"symbol": "AAPL"} -> { "data": { "posts": "Social Sentiment Unavailable for AAPL: No sentiment APIs configured.\nTo enable social feeds:\n1. X (Twitter): Get a Bearer Token from https://developer.x.com/ and set TWITTER_BEARER_TOKEN\n2. Reddit: Create an app at https://www.reddit.com/prefs/apps and set REDDIT_CLIENT_ID a
+CALL get_financial_news {"symbol": "AAPL"} -> { "data": { "financial_news": "Financial News: NEWSAPI_KEY missing or NewsApiClient not installed. (Zero-Mock Policy).", "symbol": "AAPL" }, "ok": true }
+CALL get_market_news {} -> ISERROR 1 validation error for call[get_market_news] symbol Missing required argument [type=missing_argument, input_value={}, input_type=dict] For further information visit https://errors.pydantic.dev/2.12/v/missing_argument
+CALL get_market_sentiment {} -> { "data": { "market_sentiment": "CNN Fear & Greed: UNKNOWN (0.0)" }, "ok": true }
+CALL fetch_rss_news {"symbol": ""} -> ISERROR 2 validation errors for call[fetch_rss_news] url Missing required argument [type=missing_argument, input_value={'symbol': ''}, input_type=dict] For further information visit https://errors.pydantic.dev/2.12/v/missing_argument symbol Unexpected keyword argument [type=unexpected_keyword_argument, inpu
+
+
+exit=0
