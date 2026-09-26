@@ -1,6 +1,6 @@
 # UAT run 2026-09-24-01 — ReadyTrader-Stocks: CLEAN with BLOCKED items
 
-110 checks · 25 pass · 84 fail (84 fixed & verified, 0 open, 0 fixed-unverified, 0 regressed) · 1 blocked
+111 checks · 25 pass · 85 fail (85 fixed & verified, 0 open, 0 fixed-unverified, 0 regressed) · 1 blocked
 
 Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tools, paper trading, risk guardian, api_server approvals, docs/README/configs, CI, frontend build. Out: live brokerage orders (no credentials; live trading is a hard gate), Docker (no daemon in sandbox)
 
@@ -56,6 +56,7 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 - **medium** DOC-05 — Every shipped entry point runs: docker-compose.sentinel.yml / sentinel/ → sentinel/ and docker-compose.sentinel.yml moved (git mv) to _deprecated/ with a README; .dockerignore excludes it (`9e066f4`) · **VERIFIED**
 - **medium** DOC-06 — SECURITY.md tells a reporter where to send a vulnerability → SECURITY.md points at GitHub private vulnerability reporting (security/advisories/new) and states how keys and the approval API are handled (`f9938df`) · **VERIFIED**
 - **medium** DOC-07 — The documented Docker MCP configs keep the paper ledger between sessions → configs and README Docker examples mount readytrader-stocks-data:/app/data (`f9938df`) · **VERIFIED**
+- **medium** DOC-08 — The README's Agent Zero integration works in current Agent Zero → README Option A points to the Agent Zero plugin first; the hand-made entry is the {"mcpServers": ...} JSON for Settings -> MCP/A2A -> External MCP Servers (configs/agent_zero.mcp.json, data volume included); the YAML moved to _deprecated/configs/ (`715b644`) · **VERIFIED**
 - **medium** FE-05 — Mode indicator, approval control and API URL → ModePill reads /api/health; Approve prompts for the confirm_token; API_URL module; READYTRADER logo (`352bd67`) · **VERIFIED**
 - **medium** FE-07 — The dashboard is readable at phone width (390x844) → Media query below 900 px: static top sidebar, single-column grid (`fb843a5`) · **VERIFIED**
 - **medium** FE-08 — The operator can see what a proposal is before approving it, and can reject it → Pending list carries each order's summary (no token); the Guard Rail shows it with Approve and Reject (`5fb2edf`) · **VERIFIED**
@@ -107,7 +108,7 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 | integrations | 9 | covered |
 | cli | 4 | covered |
 | config | 12 | covered |
-| docs | 9 | covered |
+| docs | 10 | covered |
 | journeys | 6 | recorded |
 
 ## Delivery
