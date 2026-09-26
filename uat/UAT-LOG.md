@@ -6,10 +6,10 @@
 ## Run 2026-09-24-01 — ReadyTrader-Stocks
 
 - Branch: `uat/2026-09-24-stocks`  |  Base: `main@e389057`
-- Started: 2026-09-24T07:08:16+00:00  |  Updated: 2026-09-25T12:01:05+00:00
+- Started: 2026-09-24T07:08:16+00:00  |  Updated: 2026-09-26T00:18:43+00:00
 - Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tools, paper trading, risk guardian, api_server approvals, docs/README/configs, CI, frontend build. Out: live brokerage orders (no credentials; live trading is a hard gate), Docker (no daemon in sandbox)
 - Verdict: **CLEAN with BLOCKED items**
-- Totals: 109 checks · 25 pass · 83 fail (83 verified fixed, 0 open, 0 fixed-unverified, 0 regressed, 0 wontfix) · 1 blocked
+- Totals: 110 checks · 25 pass · 84 fail (84 verified fixed, 0 open, 0 fixed-unverified, 0 regressed, 0 wontfix) · 1 blocked
 
 ### User journeys exercised
 
@@ -25,7 +25,7 @@
 | Section | Pass | Fail | Verified fixed | Blocked |
 |---|---|---|---|---|
 | preflight | 3 | 8 | 8 | 0 |
-| backend | 8 | 33 | 33 | 0 |
+| backend | 8 | 34 | 34 | 0 |
 | data | 1 | 6 | 6 | 0 |
 | memory | 1 | 1 | 1 | 0 |
 | frontend | 2 | 7 | 7 | 0 |
@@ -35,7 +35,7 @@
 | docs | 1 | 8 | 8 | 0 |
 | regression | 5 | 0 | 0 | 0 |
 
-### Findings (84)
+### Findings (85)
 
 #### PRE-03 — Fresh install can import the MCP server (python app/main.py)  [FAIL · critical · **VERIFIED**]
 
@@ -241,6 +241,20 @@
   - Commit: `5fb2edf`
   - Regression test: tests/test_order_path.py::test_a_paper_proposal_never_executes_live
 - Retest 1 (2026-09-24T15:39:06+00:00): **PASS** — The paper proposal approved by a live API answers 409 mode_mismatch; the broker received nothing · evidence: [BE-32-retest.txt](evidence/2026-09-24-01/BE-32-retest.txt)
+
+#### BE-34 — A quote without a price (Yahoo's unfinished daily bar) never reaches an order or the paper wallet  [FAIL · high · **VERIFIED**]
+
+- Section: `backend`  |  Journey: paper-trade a stock
+- Steps: Saturday 00:14 UTC: Yahoo's last AAPL daily row has NaN Open/Close; deposit, quote, risk check, market order, deposit again
+- Expected: the quote falls back to the last real close (or answers no price); an order is valued at a real price or refused; the wallet stays intact
+- Observed: get_stock_price answers ok with last NaN; a 1-share market order passes the risk check (NaN compares false), debits NaN from USD (stored as NULL) and fails on the order insert (execution_error NOT NULL constraint); the wallet is then broken: the next order reads a 100% drawdown and deposit_paper_funds crashes (NoneType + float) until reset_paper_wallet
+- Evidence: [BE-34.txt](evidence/2026-09-24-01/BE-34.txt)
+- Fix: provider rows without a finite positive OHLC are dropped (quote falls back to the last real close); orders value only a finite positive price; the paper engine refuses non-finite price/amount/balance before writing
+  - Root cause: Yahoo's unfinished daily row carries NaN prices; NaN is truthy and compares false, so it passed every price check down to the ledger
+  - Files: `marketdata/exchange_provider.py`, `app/tools/trading.py`, `core/paper.py`, `AGENTS.md`, `CHANGELOG.md`
+  - Commit: `08797b4`
+  - Regression test: tests/test_exchange_provider.py, tests/test_paper_metrics.py, tests/test_order_path.py (5 tests, fail on the old code)
+- Retest 1 (2026-09-26T00:18:43+00:00): **PASS** — same Yahoo NaN row: get_stock_price answers the last real close (335.92); the 1-share order fills at 335.92 on paper; 100 shares are risk_blocked at a real reference price (335.9%); the next deposit works (New Balance 9665.08) · evidence: [BE-34-retest.txt](evidence/2026-09-24-01/BE-34-retest.txt)
 
 #### CF-03 — TRADING_HALTED kill switch halts live orders for any 'on' value  [FAIL · high · **VERIFIED**]
 
