@@ -518,3 +518,18 @@ def test_a_web_page_elsewhere_cannot_open_the_websocket():
 def test_a_large_trade_verdict_does_not_promise_a_confirmation():
     result = global_container.risk_guardian.validate_trade("buy", "AAPL", 8_000.0, 200_000.0)
     assert result["allowed"] and "requires manual confirmation" not in result["reason"] and "approve_each" in result["reason"]
+
+
+def test_a_quote_without_a_real_price_never_values_or_fills_an_order(monkeypatch):
+    """UAT BE-34: with no usable daily bar and a NaN quote, the order was valued at NaN, passed the size
+    rule and was filled at NaN. It now fails closed like any order that cannot be priced."""
+    def no_bars(symbol):
+        raise RuntimeError("no bars")
+
+    fills = []
+    monkeypatch.setattr(trading, "_fetch_daily_bars", no_bars)
+    monkeypatch.setattr(global_container, "exchange_provider", FakeProvider(last=float("nan")))
+    monkeypatch.setattr(type(global_container.paper_engine), "execute_trade", lambda self, **kw: fills.append(kw) or "filled")
+    payload = json.loads(trading.place_market_order("AAPL", "buy", 1.0))
+    assert payload["error"]["code"] == "risk_blocked"
+    assert "No market price for AAPL" in payload["error"]["message"] and fills == []
