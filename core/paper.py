@@ -208,6 +208,8 @@ class PaperTradingEngine:
         and recorded a drawdown that never happened."""
         current = self.get_balance(user_id, asset)
         new_balance = current + amount
+        if not (math.isfinite(float(amount)) and math.isfinite(new_balance)):
+            raise ValueError(f"a {asset} balance change must be a finite number, got {amount!r}")
         
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
@@ -349,9 +351,17 @@ class PaperTradingEngine:
         Execute a paper trade.
         """
         base, quote = self._parse_symbol(symbol)
-        
-        # If price is 0, try to fetch it from cache or mock
-        if price <= 0:
+        amount = float(amount)
+        if not (math.isfinite(amount) and amount > 0):
+            raise ValueError(f"amount must be a positive number, got {amount!r}")
+
+        # Without a real price (0, missing or NaN), use the last known one; NaN compares false against
+        # every check below and was written to the ledger as the trade's value.
+        try:
+            price = float(price)
+        except (TypeError, ValueError):
+            price = 0.0
+        if not (math.isfinite(price) and price > 0):
             cached_price = self._get_asset_price_usd(base)
             if cached_price is None:
                 raise ValueError(f"Price for {base} is unknown and pulse price was not provided. Execution failed (Zero-Mock Policy).")
