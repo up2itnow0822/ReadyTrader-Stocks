@@ -1832,7 +1832,7 @@
       "title": "Shared agent insights: write, read back, restart, case, unicode/html",
       "steps": "post 'aapl' with html+unicode reasoning; read 'AAPL'; restart; read 'aapl' and all",
       "expected": "same insight on every path, text unchanged",
-      "observed": "stored as AAPL, returned for AAPL and aapl before and after the restart; '<b>beat</b> ... \u005cu2713 \u005cu00fcn\u005cu00efcode' unchanged",
+      "observed": "stored as AAPL, returned for AAPL and aapl before and after the restart; '<b>beat</b> ... \u2713 \u00fcn\u00efcode' unchanged",
       "result": "PASS",
       "severity": null,
       "evidence": [
