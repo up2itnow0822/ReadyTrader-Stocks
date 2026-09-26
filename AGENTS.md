@@ -15,6 +15,9 @@ dashboard (`frontend/`).
   data sources. `common/`: shared helpers (`common/switches.py`, `common/paths.py`).
 - `research/falling_knife/`: the study behind `docs/FALLING_KNIFE.md`; nothing imports it.
 - `_deprecated/`: history only, never shipped.
+- `configs/`: copy/paste MCP client configs, each in its client's own format (Agent Zero: `agent_zero.mcp.json`, the
+  `{"mcpServers": ...}` JSON for Settings → MCP/A2A → External MCP Servers); `tests/test_configs.py` keeps them and
+  the README's examples in step.
 
 ## Local Contracts
 - Fail closed. Safety switches are parsed with `common/switches.py`: protections stay on unless
