@@ -1,6 +1,6 @@
 # UAT run 2026-09-24-01 — ReadyTrader-Stocks: CLEAN with BLOCKED items
 
-109 checks · 25 pass · 83 fail (83 fixed & verified, 0 open, 0 fixed-unverified, 0 regressed) · 1 blocked
+110 checks · 25 pass · 84 fail (84 fixed & verified, 0 open, 0 fixed-unverified, 0 regressed) · 1 blocked
 
 Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tools, paper trading, risk guardian, api_server approvals, docs/README/configs, CI, frontend build. Out: live brokerage orders (no credentials; live trading is a hard gate), Docker (no daemon in sandbox)
 
@@ -21,6 +21,7 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 - **high** BE-23 — approve_each + live: an approved proposal still passes the live policy (ALLOW_TICKERS, MAX_ORDER_AMOUNT) → live_order_refusal (switches + ALLOW_*/MAX_ORDER_AMOUNT policy) runs when a live order is proposed and again at execution, including /api/approve-trade (`0beffae`) · **VERIFIED**
 - **high** BE-30 — Selling out of a position is never sized as new exposure → pre_trade_check sizes only the exposure an order adds (paper ledger / brokerage list_positions); risk rules refuse only orders that add exposure (`5fb2edf`) · **VERIFIED**
 - **high** BE-32 — A proposal executes in the mode it was proposed in → Proposals record paper_mode; the approval API refuses the other mode (409 mode_mismatch) (`5fb2edf`) · **VERIFIED**
+- **high** BE-34 — A quote without a price (Yahoo's unfinished daily bar) never reaches an order or the paper wallet → provider rows without a finite positive OHLC are dropped (quote falls back to the last real close); orders value only a finite positive price; the paper engine refuses non-finite price/amount/balance before writing (`08797b4`) · **VERIFIED**
 - **high** CF-03 — TRADING_HALTED kill switch halts live orders for any 'on' value → TRADING_HALTED halts on any value except empty/false/0/no/off (common/switches.kill_switch_on); PAPER_MODE stays on unless explicitly off, read the same way by config, the Alpaca client and the ws stream (`1f542bc`) · **VERIFIED**
 - **high** CF-04 — EXECUTION_APPROVAL_MODE fails closed: a misspelt or commented value still requires approval → EXECUTION_APPROVAL_MODE: any value other than auto requires approval (common/switches.approval_mode); env.example has no inline comments (docker --env-file keeps them) (`1f542bc`) · **VERIFIED**
 - **high** CF-05 — An unparseable MAX_ORDER_AMOUNT fails closed → MAX_ORDER_AMOUNT that is not a finite number raises invalid_policy_config; empty or unset means no limit (`0beffae`) · **VERIFIED**
@@ -99,7 +100,7 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 | Section | Checks | Status |
 |---|---|---|
 | preflight | 11 | covered |
-| backend | 41 | covered |
+| backend | 42 | covered |
 | data | 7 | covered |
 | memory | 2 | covered |
 | frontend | 9 | covered |
@@ -114,4 +115,4 @@ Scope: Stacked on PR #3 (feat/market-falling-knife). In: MCP server (stdio) tool
 - Branch `uat/2026-09-24-stocks` has a remote (`origin`) but no upstream — it has not been pushed.
 - Base: `main@e389057`
 - DOX: root AGENTS.md indexes `uat/AGENTS.md`
-- Log: `uat/UAT-LOG.md` · evidence: `uat/evidence/2026-09-24-01/` (0.64 MB)
+- Log: `uat/UAT-LOG.md` · evidence: `uat/evidence/2026-09-24-01/` (0.65 MB)
