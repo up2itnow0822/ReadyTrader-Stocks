@@ -1,0 +1,11 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx/selfapprove.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/st_head 2>&1 | grep -v 'Warning\|warn\|authlib\|compatible\|httpx2'; cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/st_head && grep -n 'require manual human confirmation\|no authentication beyond' docs/THREAT_MODEL.md
+# at 2026-09-24T21:01:06+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+agent's tool output keys: ['confirm_token', 'order_details', 'request_id', 'status']
+agent POSTs /api/approve-trade with its own token -> 200 {"ok":true,"result":{"id":"rec","symbol":"AAPL","side":"buy","qty":1.0,"order_type":"market","price":null}}
+orders the brokerage received: [{'symbol': 'AAPL', 'side': 'buy', 'qty': 1.0, 'order_type': 'market', 'price': None}]
+20:    - **Execution Approval Mode**: Set `EXECUTION_APPROVAL_MODE=approve_each` to require manual human confirmation for every trade.
+41:5.  **Local API only**: keep the API server on `127.0.0.1` (the default); it has no authentication beyond each proposal's `confirm_token`, and browsers other than the dashboard are refused (`API_CORS_ORIGINS`).
+
+
+exit=0

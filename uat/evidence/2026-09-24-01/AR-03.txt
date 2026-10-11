@@ -1,0 +1,11 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review3_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python probe_switches.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|"event"'; /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python probe_approve.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|"event"' | grep -i halt
+# at 2026-09-25T11:39:54+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+alpaca available: False
+LIVE_TRADING_ENABLED=false, no keys: brokerage_not_configured :: alpaca keys are missing. Cannot execute a live order.
+TRADING_HALTED=true, no keys: brokerage_not_configured :: alpaca keys are missing. Cannot execute a live order.
+TRADING_HALTED=true, keys set, account unreadable: risk_blocked :: Could not read the alpaca account's equity for the position-size check.
+approve while halted, account unreadable: 409 {'code': 'risk_blocked', 'reason': "Could not read the alpaca account's equity for the position-size check.", 'market': {'status': 'ok', 'falling_knife': False, 'drop_pct': 0.0, 'peak_close': 100.4, 'last_close': 100.4, 'still_falling': False, 'bars': 40, 'as_of': '2026-09-25T11:40:00Z', 'detail': None, 'rule': {'window_bars': 4, 'min_drop': 0.15}, 'on_data_error': 'block', 'required': True}}
+
+
+exit=0

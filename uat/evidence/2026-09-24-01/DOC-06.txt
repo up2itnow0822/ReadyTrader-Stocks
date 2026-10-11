@@ -1,0 +1,16 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks && sed -n 3,10p SECURITY.md && grep -n 'credential provider' SECURITY.md && (grep -rln 'CredentialProvider\|credential_provider' --include=*.py . | grep -v .venv || echo 'no credential provider in the code')
+# at 2026-09-24T08:43:55+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+### Reporting a Vulnerability
+If you believe you have found a security vulnerability, **do not** open a public issue.
+
+Please report details privately with:
+- **Description** of the issue
+- **Reproduction steps**
+- **Impact** assessment
+- Any relevant **logs** or **screenshots** (redact secrets)
+14:- This project uses a **credential provider abstraction**; prefer environment-based or vault-based secrets over raw credentials in code.
+no credential provider in the code
+
+
+exit=0

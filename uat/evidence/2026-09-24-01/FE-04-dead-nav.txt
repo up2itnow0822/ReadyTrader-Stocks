@@ -1,0 +1,16 @@
+$ bash -c 'cd frontend/src/app && grep -n "href=" layout.tsx; echo ---; ls'
+# at 2026-09-24T07:30:48+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+24:              <Link href="/" className="nav-item active">Dashboard</Link>
+25:              <Link href="/strategy" className="nav-item">Strategy</Link>
+26:              <Link href="/history" className="nav-item">History</Link>
+27:              <Link href="/settings" className="nav-item">Settings</Link>
+---
+favicon.ico
+globals.css
+layout.tsx
+page.module.css
+page.tsx
+
+
+exit=0

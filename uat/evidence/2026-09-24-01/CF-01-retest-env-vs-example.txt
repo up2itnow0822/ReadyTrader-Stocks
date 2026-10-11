@@ -1,0 +1,9 @@
+$ python3 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/envscan.py . env.example
+# at 2026-09-24T07:44:31+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+read by code: 74; in env.example: 67
+MISSING from example: CIRCUIT_BREAKER_PCT READYTRADER_AUDIT_DB_PATH READYTRADER_EXECUTION_DB_PATH READYTRADER_IDEMPOTENCY_DB_PATH READYTRADER_INSIGHT_DB_PATH READYTRADER_PAPER_DB_PATH REALTRADER_STRATEGY_DB_PATH
+in example but never read: 
+
+
+exit=0

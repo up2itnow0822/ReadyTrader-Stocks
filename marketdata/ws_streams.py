@@ -24,6 +24,8 @@ from typing import Any, Dict, List, Optional
 
 import websockets
 
+from common.switches import safety_switch_on
+
 from .store import InMemoryMarketDataStore
 
 
@@ -151,7 +153,7 @@ class AlpacaTickerStream(_WsStream):
         super().__init__(metrics=metrics, metric_prefix="ws_alpaca")
         self.api_key = os.getenv("ALPACA_API_KEY")
         self.api_secret = os.getenv("ALPACA_API_SECRET")
-        self.paper_mode = os.getenv("PAPER_MODE", "true").lower() == "true"
+        self.paper_mode = safety_switch_on(os.getenv("PAPER_MODE", "true"))
         self.symbols = [s.strip().upper() for s in symbols if s.strip()]
         self.store = store
 

@@ -1,0 +1,14 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/approval_mode.sh
+# at 2026-09-24T07:57:32+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+EXECUTION_APPROVAL_MODE=[approve_each]
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1} -> { "data": { "confirm_token": "757aaa03d14c9c5bbf2be2470f2393f3", "order_details": { "amount": 1.0, "exchange": "alpaca", "order_type": "market", "price": 0.0, "rationale": "", "sentiment_score": null, "side": "buy", "symbol": "AAPL" }, "request_id": "2345ea076
+EXECUTION_APPROVAL_MODE=[approve_each  # auto or approve_each]
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1} -> { "data": { "result": "Paper Trade Executed: BUY 1.0 AAPL @ 337.0199890136719. Value: 337.0199890136719 USD. Rationale: stock_order_paper", "venue": "paper" }, "ok": true }
+EXECUTION_APPROVAL_MODE=[approve-each]
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1} -> { "data": { "result": "Paper Trade Executed: BUY 1.0 AAPL @ 337.0199890136719. Value: 337.0199890136719 USD. Rationale: stock_order_paper", "venue": "paper" }, "ok": true }
+EXECUTION_APPROVAL_MODE=[APPROVE_EACH ]
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1} -> { "data": { "confirm_token": "7011b6a79580fbaa754e95260184a7ad", "order_details": { "amount": 1.0, "exchange": "alpaca", "order_type": "market", "price": 0.0, "rationale": "", "sentiment_score": null, "side": "buy", "symbol": "AAPL" }, "request_id": "f21deba52
+
+
+exit=0

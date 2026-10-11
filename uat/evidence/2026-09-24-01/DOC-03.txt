@@ -1,0 +1,17 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks && python3 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/dockerctx.py . && grep -n 'uvicorn' Dockerfile
+# at 2026-09-24T08:27:42+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+build context: 1181.8 MB
+      566.9 MB  frontend/
+      470.8 MB  .venv/
+      142.6 MB  .git/
+        0.6 MB  data/
+        0.4 MB  uat/
+        0.1 MB  artifacts/
+        0.1 MB  research/
+        0.1 MB  core/
+would copy into the image: .venv/, .git/, data/, uat/, artifacts/
+28:# 'uvicorn api_server:app --host 0.0.0.0 --port 8000'
+
+
+exit=0

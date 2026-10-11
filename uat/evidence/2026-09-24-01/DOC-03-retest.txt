@@ -1,0 +1,18 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks && python3 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/dockerctx.py . && grep -n 'api_server\|uvicorn' Dockerfile && API_HOST=0.0.0.0 API_PORT=8774 timeout 20 .venv/bin/python app/api_server.py > /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/dock_api.log 2>&1 & sleep 8; curl -s 127.0.0.1:8774/api/health; echo
+# at 2026-09-24T08:31:05+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+build context: 0.7 MB
+        0.3 MB  frontend/
+        0.1 MB  research/
+        0.1 MB  core/
+        0.0 MB  marketdata/
+        0.0 MB  app/
+        0.0 MB  execution/
+        0.0 MB  intelligence/
+        0.0 MB  observability/
+would copy into the image: none of data/.venv/uat/artifacts/.git
+28:#   docker run --rm -p 127.0.0.1:8000:8000 -e API_HOST=0.0.0.0 readytrader-stocks python app/api_server.py
+{"status":"ok","mode":"paper"}
+
+
+exit=0

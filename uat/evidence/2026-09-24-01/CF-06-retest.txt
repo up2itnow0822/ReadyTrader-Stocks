@@ -1,0 +1,14 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks && for v in true 1 yes TRUE; do TRADIER_SANDBOX=$v ETRADE_SANDBOX=$v .venv/bin/python -W ignore /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/sandbox_probe.py 2>/dev/null; done
+# at 2026-09-24T08:12:02+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+TRADIER_SANDBOX='true' -> tradier base_url https://sandbox.tradier.com/v1
+ETRADE_SANDBOX='true' -> etrade base_url https://apisb.etrade.com/v1/market
+TRADIER_SANDBOX='1' -> tradier base_url https://sandbox.tradier.com/v1
+ETRADE_SANDBOX='1' -> etrade base_url https://apisb.etrade.com/v1/market
+TRADIER_SANDBOX='yes' -> tradier base_url https://sandbox.tradier.com/v1
+ETRADE_SANDBOX='yes' -> etrade base_url https://apisb.etrade.com/v1/market
+TRADIER_SANDBOX='TRUE' -> tradier base_url https://sandbox.tradier.com/v1
+ETRADE_SANDBOX='TRUE' -> etrade base_url https://apisb.etrade.com/v1/market
+
+
+exit=0

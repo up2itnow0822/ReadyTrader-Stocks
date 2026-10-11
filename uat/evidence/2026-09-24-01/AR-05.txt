@@ -1,0 +1,9 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review3_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python probe_fractional.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|"event"'
+# at 2026-09-25T11:40:03+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+market sent qty 0.5 tif day -> True None 
+limit sent qty 0.5 tif ioc -> False execution_error Alpaca order failure: {"code":42210000,"message":"fractional orders must be DAY orders"}
+submit_order calls: 2
+
+
+exit=0

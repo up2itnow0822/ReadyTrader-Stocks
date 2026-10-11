@@ -1,0 +1,11 @@
+$ bash -c 'grep -n "Python 3.12" README.md; python3.12 -m venv /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/pip install -q -r requirements-dev.txt 2>&1 | grep -v notice | tail -3; echo pip_exit=${PIPESTATUS[0]}; /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/pip list 2>/dev/null | grep -E "^(mcp|fastmcp|pydantic-settings) "'
+# at 2026-09-24T07:16:19+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+104:If you want to run or test ReadyTrader-Stocks locally. Requires **Python 3.12 or newer** (`pandas_ta` has no release for older versions).
+pip_exit=0
+fastmcp                   2.14.1
+mcp                       1.30.0
+pydantic-settings         2.15.0
+
+
+exit=0

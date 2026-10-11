@@ -1,0 +1,14 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p3_paper_limits.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|│\|╭\|╰\|INFO\|transport\|stdio' | sed -n '/^(a)/,/^(b)/p'
+# at 2026-09-24T21:06:18+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+(a) does a top-up clear a drawdown halt?
+   after -12%: equity(ledger)=8,800.00 daily_pnl=-12.00% drawdown=12.00%
+   before top-up: pre_trade_check BUY 5 -> allowed=False (Max Drawdown Limit Hit (12.0%). Orders that add exposure are halted; orders that reduce or)
+   deposit_paper_funds(USD, 5000): True
+   after top-up: equity(ledger)=13,800.00 daily_pnl=-12.00% drawdown=12.00%
+   after top-up: pre_trade_check BUY 5 -> allowed=False (Max Drawdown Limit Hit (12.0%). Orders that add exposure are halted; orders that reduce or)
+
+(b) do the metrics lag the market? (bought at 100, now 80, no trade since)
+
+
+exit=0

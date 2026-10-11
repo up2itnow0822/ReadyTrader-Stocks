@@ -1,19 +1,24 @@
-# Market Data Architecture (ReadyTrader-Stocks)
+# Market Data (ReadyTrader-Stocks)
 
-ReadyTrader-Stocks routes market data via `MarketDataBus` and exposes it through MCP tools like `get_stock_price()` and `fetch_ohlcv()`.
+## Where prices come from
 
-## 📡 Data Providers
-The system wires providers in this order of priority:
+Every price and candle the server uses comes from **yfinance** (Yahoo), through
+`marketdata/exchange_provider.py`:
 
-1.  **Ingest Provider**: Manually pushed data from other agents or tools.
-2.  **WebSocket Provider**: Real-time streaming data from **Alpaca** (if configured).
-3.  **Stock Provider (Fallback)**: REST-based data from **yfinance** or brokerage APIs.
+- `get_stock_price(symbol)` and `get_multiple_prices(symbols)`: the latest quote (`last`, with the
+  day's open/high/low/volume), cached for `TICKER_CACHE_TTL_SEC` (5 s).
+- `fetch_ohlcv(symbol, timeframe, limit)`: candles with ISO timestamps, cached for
+  `OHLCV_CACHE_TTL_SEC` (60 s, never past the next daily boundary).
+- The Risk Guardian values orders at the latest price, and the Falling Knife check reads the last
+  40 daily bars (`docs/FALLING_KNIFE.md`); paper orders fill at the latest price.
 
-## ⚡ WebSocket Streams
-WebSocket streaming is **opt-in**. To enable it for a ticker, the agent calls `start_marketdata_ws`.
+No brokerage key is needed for market data. Yahoo's data is delayed for some exchanges and is
+rate-limited; when it cannot be read the tools answer `market_data_error` / `history_error`, and
+a live BUY is refused rather than priced on a guess.
 
-- **Source**: Alpaca real-time quotes (IEX/SIP).
-- **Format**: Unified snapshot format containing `symbol`, `bid`, `ask`, and `last`.
+## Not exposed in this release
 
-## 📦 Persistence
-Market data is kept in-memory with short TTLs (default 5-60 seconds) to ensure agents never trade on stale prices. If you need historical data for backtesting, use `fetch_ohlcv`.
+The repository contains a `MarketDataBus` (freshness scoring, ingest, plugins) and an Alpaca
+websocket stream manager (`marketdata/ws_streams.py`), but no tool starts a stream or reads the
+bus, so they do not affect any answer. The API server's `/ws` endpoint is wired to the stream
+store and stays silent until a stream is started.

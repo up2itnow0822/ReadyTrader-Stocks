@@ -4,6 +4,7 @@ from typing import Any, Dict
 from fastmcp import FastMCP
 
 from app.core.container import global_container
+from app.tools.params import Integer, Number
 from core.stress_test import run_synthetic_stress_test as _run_stress
 
 
@@ -17,8 +18,17 @@ def _json_err(code: str, message: str, data: Dict[str, Any] | None = None) -> st
     return json.dumps(payload, indent=2, sort_keys=True)
 
 
-def post_market_insight(symbol: str, agent_id: str, signal: str, confidence: float, reasoning: str, ttl_seconds: int = 3600) -> str:
-    """Share a market insight or trade signal with other agents in the system."""
+SIGNALS = ("bullish", "bearish", "neutral")
+
+
+def post_market_insight(symbol: str, agent_id: str, signal: str, confidence: Number, reasoning: str, ttl_seconds: Integer = 3600) -> str:
+    """Share a market insight with other agents: `signal` is bullish, bearish or neutral, `confidence` 0.0-1.0."""
+    if str(signal).strip().lower() not in SIGNALS:
+        return _json_err("invalid_request", f"signal must be one of {', '.join(SIGNALS)}, got {signal!r}")
+    if not (isinstance(confidence, (int, float)) and 0.0 <= float(confidence) <= 1.0):
+        return _json_err("invalid_request", f"confidence must be between 0.0 and 1.0, got {confidence!r}")
+    if not str(symbol).strip() or int(ttl_seconds) <= 0:
+        return _json_err("invalid_request", "symbol must be non-empty and ttl_seconds positive")
     insight = global_container.insight_store.post_insight(symbol, agent_id, signal, confidence, reasoning, ttl_seconds)
     return _json_ok({"insight": vars(insight)})
 
@@ -30,8 +40,19 @@ def get_latest_insights(symbol: str = "") -> str:
 
 
 def run_backtest_simulation(strategy_code: str, symbol: str, timeframe: str = '1h') -> str:
-    """Run a backtest of Python strategy code against historical historical data."""
-    result = global_container.backtest_engine.run(strategy_code, symbol, timeframe)
+    """
+    Backtest Python strategy code on the symbol's last 500 candles, starting from $10,000.
+
+    The code must define `on_candle(close, rsi, state)` returning 'buy', 'sell' or 'hold';
+    imports such as os are refused. A strategy that fails to compile or raises returns ok:false
+    with code backtest_error.
+    """
+    try:
+        result = global_container.backtest_engine.run(strategy_code, symbol, timeframe)
+    except Exception as e:
+        return _json_err("backtest_error", str(e), {"symbol": symbol, "timeframe": timeframe})
+    if isinstance(result, dict) and "error" in result:
+        return _json_err("backtest_error", str(result["error"]), {"symbol": symbol, "timeframe": timeframe})
     return _json_ok({"result": result})
 
 
@@ -52,15 +73,15 @@ def run_synthetic_stress_test(strategy_code: str, config_json: str = "{}") -> st
     """
     try:
         config = json.loads(config_json)
-        result = _run_stress(strategy_code, config)
+        result = _run_stress(strategy_code=strategy_code, config=config)
         return _json_ok({"result": result})
     except Exception as e:
         return _json_err("stress_test_error", str(e))
 
 
 def register_research_tools(mcp: FastMCP):
-    mcp.add_tool(post_market_insight)
-    mcp.add_tool(get_latest_insights)
-    mcp.add_tool(run_backtest_simulation)
-    mcp.add_tool(get_market_regime)
-    mcp.add_tool(run_synthetic_stress_test)
+    mcp.tool(post_market_insight)
+    mcp.tool(get_latest_insights)
+    mcp.tool(run_backtest_simulation)
+    mcp.tool(get_market_regime)
+    mcp.tool(run_synthetic_stress_test)

@@ -1,0 +1,9 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/order_type.sh
+# at 2026-09-24T08:02:10+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL place_stock_order {"symbol": "AAPL", "side": "buy", "amount": 1, "order_type": "stop"} -> { "data": { "result": "Paper Trade Executed: BUY 1.0 AAPL @ 337.0199890136719. Value: 337.0199890136719 USD. Rationale: stock_order_paper", "venue": "paper" }, "ok": true }
+CALL place_stock_order {"symbol": "AAPL", "side": "buy", "amount": 1, "order_type": "limit"} -> { "data": { "result": "Paper Trade Executed: BUY 1.0 AAPL @ 337.0199890136719. Value: 337.0199890136719 USD. Rationale: stock_order_paper", "venue": "paper" }, "ok": true }
+CALL place_stock_order {"symbol": "AAPL", "side": "buy", "amount": 1, "order_type": "limit", "price": -5} -> { "data": { "result": "Paper Trade Executed: BUY 1.0 AAPL @ 337.0199890136719. Value: 337.0199890136719 USD. Rationale: stock_order_paper", "venue": "paper" }, "ok": true }
+
+
+exit=0

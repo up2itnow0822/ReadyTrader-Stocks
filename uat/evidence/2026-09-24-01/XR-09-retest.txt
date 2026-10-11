@@ -1,0 +1,79 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p5_api.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|│\|╭\|╰\|INFO\|transport\|stdio'
+# at 2026-09-24T21:06:34+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+bcrypt installed: False | passlib installed: False
+auth code in api_server.py (login/token/bcrypt/DEV_MODE/Depends): ['Authorization']
+routes: ['/api/approve-trade', '/api/health', '/api/pending-approvals', '/api/portfolio', '/docs', '/docs/oauth2-redirect', '/openapi.json', '/redoc', '/ws']
+   POST /api/login -> 404
+   POST /api/auth/login -> 404
+   POST /login -> 404
+   POST /token -> 404
+unauthenticated GET /api/portfolio -> 200 | GET /api/pending-approvals -> 200
+log lines request_id: ['dbc492d3-f23b-44f7-b565-22cf806d571c', 'd2e90865-cd06-4270-9498-dde86fb7e5dc'] -> identical: False | API_CTX: {'tool': 'api_server', 'request_id': '55418e97-0004-4e27-9fc3-4a4418f0932d', 'ts_ms': 1790283997015, 'service': 'readytrader'}
+
+200 response headers: {'content-length': '30', 'content-type': 'application/json', 'x-content-type-options': 'nosniff', 'x-frame-options': 'DENY', 'referrer-policy': 'no-referrer', 'cache-control': 'no-store', 'x-request-id': 'cb3223bd-647a-4aae-aade-60c88fdbdf29'}
+   security/request-id headers present: ['x-content-type-options', 'x-frame-options', 'referrer-policy', 'x-request-id', 'cache-control']
+unhandled error in /api/pending-approvals (request_id=60bcc51b-1713-449f-b91a-371218d6f1cf)
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/app/api_server.py", line 111, in request_context
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 1281, in handle
+    await super().handle(scope, receive, send)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 352, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/app/api_server.py", line 193, in get_pending_approvals
+    return _json_safe(global_container.execution_store.list_pending())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks/p5_api.py", line 54, in boom
+    raise RuntimeError("secret internal detail: /home/op/.env line 3")
+RuntimeError: secret internal detail: /home/op/.env line 3
+unhandled exception in a route -> 500 '{"detail":{"code":"internal_error","message":"Internal error; see the API log for request 60bcc51b-1713-449f-b91a-371218d6f1cf."}}' {'content-length': '130', 'content-type': 'application/json', 'x-content-type-options': 'nosniff', 'x-frame-options': 'DENY', 'referrer-policy': 'no-referrer', 'cache-control': 'no-store', 'x-request-id': '60bcc51b-1713-449f-b91a-371218d6f1cf'}
+approve-trade failed (request_id=x)
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/app/api_server.py", line 220, in approve_trade
+    proposal = global_container.execution_store.confirm(req.request_id, req.confirm_token)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks/p5_api.py", line 60, in <lambda>
+    g.execution_store.confirm = lambda *a: boom()
+                                           ^^^^^^
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks/p5_api.py", line 54, in boom
+    raise RuntimeError("secret internal detail: /home/op/.env line 3")
+RuntimeError: secret internal detail: /home/op/.env line 3
+exception inside approve-trade's try -> 500 {"detail":{"code":"internal_error","message":"Internal error; see the API log for request 5a2bd70a-d45d-4e2a-939a-3cb522d0550f."}}
+
+
+exit=0

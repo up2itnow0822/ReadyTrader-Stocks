@@ -1,0 +1,22 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/smithery.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks AAPL 2>&1 | grep -v 'Warning\|warn\|authlib\|httpx2\|compatible before\|│\|╭\|╰\|INFO     ' | grep -v '^\s*$'; grep -n -A3 'EXECUTION_APPROVAL_MODE' smithery.yaml | head -8
+# at 2026-09-24T21:57:03+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+configSchema keys: ['ALLOW_TICKERS', 'ALPACA_API_KEY', 'ALPACA_API_SECRET', 'ALPACA_PAPER', 'ALPHAVANTAGE_API_KEY', 'EXECUTION_APPROVAL_MODE', 'LIVE_TRADING_ENABLED', 'MAX_ORDER_AMOUNT', 'NEWSAPI_KEY', 'PAPER_MODE', 'TRADING_HALTED']
+  default                  env={'PAPER_MODE': 'true'}
+                             'ReadyTrader-Stocks' with transport                
+                             'stdio'                                            
+                           place_market_order -> executed: {'result': 'Paper Trade Executed: BUY 1.0 AAPL @ 335.9200134277344. Value: 335.9
+  user sets approve_each   env={'PAPER_MODE': 'true', 'EXECUTION_APPROVAL_MODE': 'approve_each'}
+                             'ReadyTrader-Stocks' with transport                
+                             'stdio'                                            
+                           place_market_order -> pending_approval
+  tools that approve a proposal inside the MCP server: none (approval is POST /api/approve-trade on a separate process)
+21:      EXECUTION_APPROVAL_MODE:
+22-        type: string
+23-        description: "'auto' executes orders; 'approve_each' (or any other value) makes each order a proposal to approve."
+24-        default: "auto"
+--
+62:    EXECUTION_APPROVAL_MODE: "auto"
+
+
+exit=0

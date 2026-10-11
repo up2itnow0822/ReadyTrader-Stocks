@@ -1,0 +1,19 @@
+$ bash -c 'timeout 240 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/python examples/paper_quick_demo.py 2>&1 | tail -12; echo exit=${PIPESTATUS[0]}'
+# at 2026-09-24T07:17:22+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+
+5) Execute a market SELL (paper) and re-check portfolio value
+Paper Trade Executed: SELL 10.0 AAPL @ 160.0. Value: 1600.0 USD. Rationale: Take profit demo
+Portfolio value (USD): 10100.00
+
+6) Risk metrics snapshot
+{
+  "daily_pnl_pct": 0.01,
+  "drawdown_pct": 0.15
+}
+
+Done. Next: run `python examples/simulation_demo.py` for the synthetic stress lab.
+exit=0
+
+
+exit=0

@@ -1,0 +1,9 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/policy_codes.sh
+# at 2026-09-24T08:06:12+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL place_market_order {"symbol": "AAPL", "side": "sell", "amount": 5} -> { "error": { "code": "order_amount_too_large", "data": { "amount": 5.0, "max_order_amount": 1.0 }, "message": "Order amount 5.0 exceeds MAX_ORDER_AMOUNT=1.0." }, "ok": false }
+CALL place_market_order {"symbol": "MSFT", "side": "sell", "amount": 1} -> { "error": { "code": "ticker_not_allowed", "data": { "allow_tickers": [ "aapl" ], "symbol": "MSFT" }, "message": "Ticker 'MSFT' is not allowlisted." }, "ok": false }
+CALL place_stock_order {"symbol": "AAPL", "side": "sell", "amount": 1, "exchange": "tradier"} -> { "error": { "code": "brokerage_not_allowed", "data": { "allow_brokerages": [ "alpaca" ], "brokerage": "tradier" }, "message": "Brokerage 'tradier' is not allowlisted." }, "ok": false }
+
+
+exit=0

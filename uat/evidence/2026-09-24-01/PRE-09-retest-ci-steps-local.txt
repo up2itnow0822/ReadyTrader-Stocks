@@ -1,0 +1,26 @@
+$ bash -c 'set -o pipefail; grep -E "run:|python-version" .github/workflows/ci.yml; echo "== ruff"; /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/ruff check . | tail -1; echo "== pytest"; /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/pytest -p no:cacheprovider -W ignore 2>&1 | tail -1; echo "== bandit"; /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/bandit -q -c bandit.yaml -r app core common execution intelligence marketdata observability strategy && echo bandit-clean; echo "== frontend"; cd frontend && npm ci --no-audit --no-fund >/dev/null 2>&1 && npm run lint >/dev/null 2>&1 && echo lint-ok && NEXT_TELEMETRY_DISABLED=1 npm run build 2>&1 | tail -3'
+# at 2026-09-24T07:37:30+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+          python-version: "3.12"
+        run: python -m pip install -r requirements-dev.txt
+        run: ruff check .
+        run: pytest
+        run: bandit -q -c bandit.yaml -r app core common execution intelligence marketdata observability strategy
+      run:
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+== ruff
+All checks passed!
+== pytest
+255 passed, 2 warnings in 10.12s
+== bandit
+bandit-clean
+== frontend
+lint-ok
+
+○  (Static)  prerendered as static content
+
+
+
+exit=0

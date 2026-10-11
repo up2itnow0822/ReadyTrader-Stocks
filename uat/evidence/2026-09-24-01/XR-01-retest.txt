@@ -1,0 +1,47 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p1_sizing.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|│\|╭\|╰\|INFO\|transport\|stdio'
+# at 2026-09-24T21:06:12+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+== LIVE, equity 100,000, market 200 ==
+[1a] control: market BUY 1000 sh, no price
+   -> ok=False risk_blocked: Position size too large (200.8%). Max allowed is 5%.
+   broker orders: []
+[1b] market BUY 1000 sh with price=1 (notional 200,000 = 200% of equity)
+   -> ok=False risk_blocked: Position size too large (200.8%). Max allowed is 5%.
+   broker orders: []
+   pre_trade_check: {'allowed': False, 'reference_price': 200.8, 'market_price': 200.8}
+[1c] limit BUY 1000 sh @ 1 (market 200, resting far below)
+   -> ok=False risk_blocked: Position size too large (200.8%). Max allowed is 5%.
+   broker orders: []
+[1d] limit SELL 1000 sh @ 1, no position (marketable: opens a ~200,000 short)
+   -> ok=False risk_blocked: Position size too large (200.0%). Max allowed is 5%.
+   broker orders: []
+[1e] market SELL 1000 sh price=1 holding 5 (995 sh short)
+   -> ok=False risk_blocked: Position size too large (199.0%). Max allowed is 5%.
+   broker orders: []
+
+== LIVE, no market price at all (bars and quote fail) ==
+[1f] market SELL (short) 1000 sh, no price
+   -> ok=False risk_blocked: No market price for AAPL: orders are valued at the market for the position-size check; retry when market data 
+   broker orders: []
+[1g] market SELL (short) 1000 sh, price=1
+   -> ok=False risk_blocked: No market price for AAPL: orders are valued at the market for the position-size check; retry when market data 
+   broker orders: []
+[1h] MARKET_GUARD_ON_DATA_ERROR=allow, market BUY 1000 sh, price=1
+   -> ok=False risk_blocked: No market price for AAPL: orders are valued at the market for the position-size check; retry when market data 
+   broker orders: []
+[1i] default guard, market BUY 1000 sh, price=1
+   -> ok=False risk_blocked: Falling Knife check could not run for AAPL (RuntimeError: no bars); BUYs are blocked until it can. Set MARKET_
+   broker orders: []
+
+== LIVE approval API re-execution (approve_each) ==
+[1j] propose market BUY 1000 sh price=1
+   -> ok=False risk_blocked: Position size too large (200.8%). Max allowed is 5%.
+   broker orders: []
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks/p1_sizing.py", line 72, in <module>
+    prop = show("[1j] propose market BUY 1000 sh price=1", t.place_stock_order("AAPL", "buy", 1000, price=1.0), b)["data"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'data'
+
+
+exit=0

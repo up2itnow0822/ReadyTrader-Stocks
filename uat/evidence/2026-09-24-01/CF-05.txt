@@ -1,0 +1,14 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/policy_limit.sh
+# at 2026-09-24T08:00:51+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+MAX_ORDER_AMOUNT=[10]
+CALL place_market_order {"symbol": "AAPL", "side": "sell", "amount": 5000} -> { "error": { "code": "execution_error", "data": {}, "message": "" }, "ok": false }
+MAX_ORDER_AMOUNT=[1,000]
+CALL place_market_order {"symbol": "AAPL", "side": "sell", "amount": 5000} -> { "error": { "code": "brokerage_not_configured", "data": {}, "message": "alpaca keys are missing. Cannot execute a live order." }, "ok": false }
+MAX_ORDER_AMOUNT=[$500]
+CALL place_market_order {"symbol": "AAPL", "side": "sell", "amount": 5000} -> { "error": { "code": "brokerage_not_configured", "data": {}, "message": "alpaca keys are missing. Cannot execute a live order." }, "ok": false }
+MAX_ORDER_AMOUNT=[1O]
+CALL place_market_order {"symbol": "AAPL", "side": "sell", "amount": 5000} -> { "error": { "code": "brokerage_not_configured", "data": {}, "message": "alpaca keys are missing. Cannot execute a live order." }, "ok": false }
+
+
+exit=0

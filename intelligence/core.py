@@ -25,6 +25,22 @@ try:
 except ImportError:
     feedparser = None
 
+class Unavailable(str):
+    """
+    The text a source returns when it could not answer (no key, refused, errored). It reads like
+    any other message, and the MCP tools turn it into {"ok": false, "error": {"code": ...}} so an
+    agent never mistakes "NewsAPI Error: ..." for headlines. `code` is "not_configured" when a key
+    or library is missing, else "source_unavailable".
+    """
+
+    code: str
+
+    def __new__(cls, message: str, code: str = "source_unavailable") -> "Unavailable":
+        obj = super().__new__(cls, message)
+        obj.code = code
+        return obj
+
+
 def get_market_sentiment() -> str:
     """
     Fetch market sentiment (Fear & Greed) for Stocks.
@@ -37,42 +53,53 @@ def get_market_sentiment() -> str:
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
         response = requests.get(url, headers=headers, timeout=10)
-        data = response.json()
-        
-        value = data.get("fear_and_greed", {}).get("rating", "Unknown")
-        score = data.get("fear_and_greed", {}).get("now", 0.0)
-        
-        return f"CNN Fear & Greed: {value.upper()} ({round(score, 1)})"
+        reading = response.json().get("fear_and_greed") if response.status_code == 200 else None
+        if not reading or reading.get("now") is None:
+            # A refused request (CNN answers bots with 418) used to read as "UNKNOWN (0.0)", a
+            # number nobody measured.
+            return Unavailable(
+                f"Market Sentiment: CNN Fear & Greed unavailable (HTTP {response.status_code}). "
+                "(Zero-Mock Policy: No simulated fallback provided)."
+            )
+        return f"CNN Fear & Greed: {str(reading.get('rating', 'unknown')).upper()} ({round(float(reading['now']), 1)})"
     except Exception as e:
-        return f"Market Sentiment: Error fetching CNN Fear & Greed: {str(e)}. (Zero-Mock Policy: No simulated fallback provided)."
+        return Unavailable(
+            f"Market Sentiment: Error fetching CNN Fear & Greed: {str(e)}. (Zero-Mock Policy: No simulated fallback provided)."
+        )
 
-def get_market_news() -> str:
+def get_market_news(symbol: str = "") -> str:
     """
-    Fetch aggregated equity market news using Alpha Vantage.
+    Fetch equity market news using Alpha Vantage, for one ticker when `symbol` is given.
     """
     api_key = os.getenv("ALPHAVANTAGE_API_KEY")
     if not api_key:
-        return "Market News: ALPHAVANTAGE_API_KEY missing. News unavailable."
+        return Unavailable("Market News: ALPHAVANTAGE_API_KEY missing. News unavailable.", "not_configured")
     
     try:
         # Alpha Vantage News Sentiment endpoint
-        url = f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&apikey={api_key}"
-        response = requests.get(url, timeout=10)
+        params = {"function": "NEWS_SENTIMENT", "apikey": api_key}
+        if symbol:
+            params["tickers"] = symbol.strip().upper()
+        response = requests.get("https://www.alphavantage.co/query", params=params, timeout=10)
         data = response.json()
         
         if 'feed' in data:
+            if not data['feed']:
+                return "Alpha Vantage news: no articles found."
             headlines = [f"{i+1}. {p['title']} ({p['source']})" for i, p in enumerate(data['feed'][:5])]
             return "Alpha Vantage news:\n" + "\n".join(headlines)
-        return "Error: No news found via Alpha Vantage."
+        # Alpha Vantage answers a bad key or a rate limit with 200 and a note instead of a feed.
+        note = data.get("Information") or data.get("Note") or data.get("Error Message") or "no feed in the response"
+        return Unavailable(f"Error: Alpha Vantage returned no news: {note}")
     except Exception as e:
-        return f"Error fetching news: {str(e)}"
+        return Unavailable(f"Error fetching news: {str(e)}")
 
 def fetch_rss_news(symbol: str = "") -> str:
     """
     Fetch free market news from RSS feeds.
     """
     if not feedparser:
-        return "Error: feedparser library not installed. Cannot fetch RSS news."
+        return Unavailable("Error: feedparser library not installed. Cannot fetch RSS news.", "not_configured")
     
     feeds = [
         ("MarketWatch", "https://www.marketwatch.com/rss/marketupdate"),
@@ -80,7 +107,8 @@ def fetch_rss_news(symbol: str = "") -> str:
     ]
     
     all_headlines = []
-    
+    failures = []
+
     for name, url in feeds:
         try:
             feed = feedparser.parse(url)
@@ -96,11 +124,14 @@ def fetch_rss_news(symbol: str = "") -> str:
                 all_headlines.append(f"{entry.title} ({name})")
                 count += 1
         except Exception as e:
-            all_headlines.append(f"Error fetching {name} feed: {str(e)}")
-            
+            # Kept out of the headlines: an error is not news.
+            failures.append(f"{name}: {str(e)}")
+
+    if not all_headlines and failures:
+        return Unavailable("RSS feeds unavailable: " + "; ".join(failures))
     if not all_headlines:
-        return f"No RSS news found matching '{symbol}' or feeds unavailable."
-        
+        return f"No RSS news found matching '{symbol}'."
+
     return "Market News (Free RSS):\n" + "\n".join([f"{i+1}. {h}" for i, h in enumerate(all_headlines[:6])])
 
 
@@ -229,7 +260,7 @@ def analyze_social_sentiment(symbol: str) -> str:
     """
     sym = ticker(symbol)
     if not sym:
-        return "Social Sentiment Unavailable: no symbol given."
+        return Unavailable("Social Sentiment Unavailable: no symbol given.")
 
     tweets, twitter_result, twitter_state = _recent_tweets(sym)
     titles, reddit_result, reddit_state = _recent_reddit_titles(sym)
@@ -238,7 +269,7 @@ def analyze_social_sentiment(symbol: str) -> str:
 
     if not configured:
         _sentiment_cache.set(sym, 0, configured=False)
-        return "\n".join(
+        return Unavailable("\n".join(
             [
                 f"Social Sentiment Unavailable for {sym}: No sentiment APIs configured.",
                 "To enable social feeds:",
@@ -246,7 +277,12 @@ def analyze_social_sentiment(symbol: str) -> str:
                 "2. Reddit: Create an app at https://www.reddit.com/prefs/apps and set REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET",
                 "The Falling Knife check has no data source and treats sentiment as neutral (0.0).",
             ]
-        )
+        ), "not_configured")
+
+    if not texts and "ok" not in (twitter_state, reddit_state):
+        # Every configured source errored: say so, rather than an empty report that reads as calm.
+        _sentiment_cache.set(sym, 0, configured=True)
+        return Unavailable("\n".join([twitter_result, reddit_result]))
 
     lines = [twitter_result, reddit_result]
     if texts:
@@ -267,16 +303,20 @@ def fetch_financial_news(symbol: str) -> str:
     """
     api_key = os.getenv("NEWSAPI_KEY")
     if not api_key or not NewsApiClient:
-         return "Financial News: NEWSAPI_KEY missing or NewsApiClient not installed. (Zero-Mock Policy)."
+         return Unavailable(
+             "Financial News: NEWSAPI_KEY missing or NewsApiClient not installed. (Zero-Mock Policy).", "not_configured"
+         )
          
     try:
         newsapi = NewsApiClient(api_key=api_key)
         # Search for symbol + stocks or finance
         articles = newsapi.get_everything(q=f"{symbol} stock", language='en', sort_by='relevancy', page_size=3)
         
-        if articles['status'] == 'ok' and articles['articles']:
+        if articles.get('status') != 'ok':
+            return Unavailable(f"NewsAPI Error: {articles}")
+        if articles['articles']:
             headlines = [f"{i+1}. {a['title']} ({a['source']['name']})" for i, a in enumerate(articles['articles'])]
             return "Financial Headlines (NewsAPI):\n" + "\n".join(headlines)
         return "NewsAPI: No articles found."
     except Exception as e:
-        return f"NewsAPI Error: {str(e)}"
+        return Unavailable(f"NewsAPI Error: {str(e)}")

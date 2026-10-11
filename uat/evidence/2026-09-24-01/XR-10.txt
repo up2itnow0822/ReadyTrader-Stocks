@@ -1,0 +1,8 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p8_symbols.py 2>&1 | grep -E 'LIVE|brk.b|broker got'
+# at 2026-09-24T20:51:20+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+== LIVE (recorder brokerage, equity 100,000, market 100) ==
+   hold 100 BRK.B  sell   100 'brk.b '  : position seen  100.0, added    0.0 -> ok: {'id': 'rec-1', 'order_type': 'market', 'price': None, ' | broker got symbol 'brk.b '
+
+
+exit=0

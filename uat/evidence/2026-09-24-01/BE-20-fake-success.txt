@@ -1,0 +1,11 @@
+$ bash -c 'PROBE_MAX=400 timeout 200 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/mcp_call.py . "[\"app/main.py\"]" "{\"PAPER_MODE\":\"true\",\"PAPER_DB_PATH\":\"/tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/be20.db\"}" "[[\"deposit_paper_funds\",{\"asset\":\"USD\",\"amount\":1000}],[\"place_limit_order\",{\"symbol\":\"AAPL\",\"side\":\"buy\",\"amount\":1,\"price\":330}],[\"place_limit_order\",{\"symbol\":\"AAPL\",\"side\":\"sell\",\"amount\":5,\"price\":330}]]" 2>&1 | grep ^CALL; echo "== live mode, start_brokerage_private_ws"; PAPER_MODE=false /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python -c "import sys; sys.path.insert(0, \".\"); from app.tools.trading import start_brokerage_private_ws as f; print(\" \".join(f(\"alpaca\").split()))" 2>&1 | tail -1'
+# at 2026-09-24T07:45:48+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL deposit_paper_funds {"asset": "USD", "amount": 1000} -> { "data": { "message": "Deposited 1000.0 USD. New Balance: 1000.0" }, "ok": true }
+CALL place_limit_order {"symbol": "AAPL", "side": "buy", "amount": 1, "price": 330} -> { "data": { "result": "Paper Trade Executed: BUY 1.0 AAPL @ 330.0. Value: 330.0 USD. Rationale: stock_order_paper", "venue": "paper" }, "ok": true }
+CALL place_limit_order {"symbol": "AAPL", "side": "sell", "amount": 5, "price": 330} -> { "data": { "result": "Insufficient fund. Have 1.0 AAPL, need 5.0", "venue": "paper" }, "ok": true }
+== live mode, start_brokerage_private_ws
+{ "data": { "brokerage": "alpaca", "mode": "ws", "status": "connected" }, "ok": true }
+
+
+exit=0

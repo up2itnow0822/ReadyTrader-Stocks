@@ -1,0 +1,11 @@
+$ (cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review3_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python probe_switches.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|"event"'); /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python -m pytest -p no:warnings -q tests/test_uat_review_2026_09_24.py -k 'switches_answer_first or halted_or_closed' 2>&1 | tail -1
+# at 2026-09-25T11:53:45+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+alpaca available: False
+LIVE_TRADING_ENABLED=false, no keys: live_trading_disabled :: PAPER_MODE is false but LIVE_TRADING_ENABLED is not true: no live order was sent.
+TRADING_HALTED=true, no keys: trading_halted :: TRADING_HALTED is set: live trading is halted, no order was sent.
+TRADING_HALTED=true, keys set, account unreadable: trading_halted :: TRADING_HALTED is set: live trading is halted, no order was sent.
+..                                                                       [100%]
+
+
+exit=0

@@ -7,16 +7,20 @@ ReadyTrader-Stocks empowers AI agents with "Eyes" (intelligence) to navigate the
 | Source | Target | Cost | Required Credentials | 
 | :--- | :--- | :--- | :--- |
 | **RSS Market News** | General | Free | None (MarketWatch, Yahoo Finance) |
-| **Fear & Greed Index** | Market | Free | None |
-| **Reddit** | Social | Free | Client ID + Secret (/r/wallstreetbets) |
-| **NewsAPI** | Financial | Free (Trial) | API Key (Bloomberg, Reuters) |
+| **Fear & Greed Index** | Market | Free | None (CNN's unofficial endpoint; it often refuses automated requests) |
+| **Reddit** | Social | Free | Client ID + Secret (r/stocks, r/wallstreetbets) |
+| **X (Twitter)** | Social | Paid API | Bearer token (`TWITTER_BEARER_TOKEN`) |
+| **NewsAPI** | Financial | Free (developer plan) | API key (`NEWSAPI_KEY`) |
+| **Alpha Vantage** | Financial | Free tier | API key (`ALPHAVANTAGE_API_KEY`) |
 
 ---
 
 ## 🛠️ Configuration Instructions
 
 ### 1. Free News & Sentiment
-Work **out-of-the-box**. Agents use `fetch_rss_news` and `get_market_sentiment` without any keys.
+No keys needed: agents use `fetch_rss_news` and `get_market_sentiment`. When a source cannot
+answer, the tool says so instead of returning its error as news: `{"ok": false, "error": {"code":
+"source_unavailable"}}`, or `"not_configured"` when a key is missing.
 
 ### 2. Reddit Sentiment (High Alpha)
 Great for detecting retail buzz and "meme stock" momentum.
@@ -28,13 +32,15 @@ Great for detecting retail buzz and "meme stock" momentum.
     REDDIT_CLIENT_SECRET=your_secret
     ```
 
-### 3. Financial News (Institutional)
-For high-signal news from major financial outlets via NewsAPI.
+### 3. Financial News
+Headlines from NewsAPI's search (`<symbol> stock`, by relevance) and Alpha Vantage's news feed.
 1.  Get a key at [NewsAPI.org](https://newsapi.org/).
 2.  Add to `.env`:
     ```bash
     NEWSAPI_KEY=your_key
     ```
+3.  For `get_market_news`, get a free key at [Alpha Vantage](https://www.alphavantage.co/support/#api-key)
+    and set `ALPHAVANTAGE_API_KEY`.
 
 ---
 
@@ -43,7 +49,8 @@ For high-signal news from major financial outlets via NewsAPI.
 - `fetch_rss_news(symbol="")`: Aggregates public RSS feeds. Best for general context.
 - `get_market_sentiment()`: Returns the Stock Market Fear & Greed Index.
 - `get_social_sentiment(symbol)`: Returns recent X and Reddit posts about a ticker **for you to read**. Returns text, not a score — see "The Falling Knife rule" below.
-- `get_financial_news(symbol)`: Queries high-tier publications (Bloomberg, Reuters).
+- `get_financial_news(symbol)`: The top NewsAPI headlines for the ticker.
+- `get_market_news(symbol="")`: Alpha Vantage headlines, for one ticker if given.
 
 ______________________________________________________________________
 
@@ -83,13 +90,13 @@ A gate that catches one crash in eight and blocks good buys on peer news is net 
 
 ### What ships instead
 
-- **The order path is no longer a bypass.** It reads the same sentiment value as the validation tool, and now passes daily loss and drawdown, which it never did — so those two rules apply to real orders for the first time.
+- **The order path is no longer a bypass.** It reads the same sentiment value as the validation tool, and now passes the paper account's daily loss and drawdown, which it never did. (A live brokerage account has no loss history here, so live orders report those two rules as `inactive_rules`.)
 - **Nothing fabricates a number.** The cache stores how much text was fetched, never a score.
 - **The absence of a measurement is visible.** Every verdict carries a `sentiment` block whose `source` is `unmeasured` or `agent_supplied` — never a measurement by this server — plus a `hint` saying what to do about it.
 - **The agent can supply its own reading.** `validate_trade_risk(..., sentiment_score=...)` and every order entry point accept a score on `[-1, +1]`. You are an LLM reading the actual posts, which is a far better judge of them than any word list, and the response records that the judgement was yours.
 
-### The durable fix
+### The durable fix (done)
 
-Drive the Falling Knife rule from **price and volume**, which this repo already fetches (`fetch_ohlcv`, `intelligence/regime.py` computes ATR). A gap-down-plus-volume-spike test catches the feeds above directly, instead of inferring them from chatter. That is a larger change than repairing a broken scorer, and is deliberately left as follow-up rather than smuggled into this one.
+The Falling Knife rule is now also driven by **price**, which needs no sentiment at all. Every BUY now reads the stock's recent daily closes and is refused while it is still falling after a 15%+ drop. The thresholds were chosen on historical data and tested on instruments the choice never saw; see [FALLING_KNIFE.md](FALLING_KNIFE.md). Volume was tested as an extra condition (a 2x volume spike) and barely changed the result, so the shipped rule uses closes only. The sentiment rule above still applies on top, when you supply a reading.
 
 The benchmark corpora used above are simulations, not market data. They are preserved outside the repo so that any future scorer can be compared against the same feeds.

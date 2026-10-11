@@ -1,0 +1,11 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/st_fe_mobile.sh FE-07
+# at 2026-09-24T12:29:26+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL deposit_paper_funds {"asset": "USD", "amount": 25000} -> { "data": { "message": "Deposited 25000.0 USD. New Balance: 25000.0" }, "ok": true }
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 2} -> { "data": { "result": "Paper Trade Executed: BUY 2.0 AAPL @ 337.0199890136719. Value: 674.
+snap exit=0
+main left/width [260, 407] scrollWidth 390 clientWidth 390
+0
+
+
+exit=0

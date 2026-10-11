@@ -1,0 +1,23 @@
+$ .venv/bin/python -W ignore /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/st_qa_review.py 2>&1 | grep -v 'Warning\|compatible\|from \|warnings.warn\|api_client_'
+# at 2026-09-24T15:38:38+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+price 100.40
+== A. a long built in three orders of ~4% each, then closed in one SELL
+ buy 39 -> Paper Trade Executed: BUY 39 AAPL @ 100.4. Value: 3915.6000000000004 U
+ buy 39 -> Paper Trade Executed: BUY 39 AAPL @ 100.4. Value: 3915.6000000000004 U
+ buy 39 -> Paper Trade Executed: BUY 39 AAPL @ 100.4. Value: 3915.6000000000004 U
+ sell 117 (close the whole position) -> Paper Trade Executed: SELL 117 AAPL @ 100.4. Value: 11746.800000000001
+== B. validate_trade_risk with malformed input
+  {'side': 'hold', 'symbol': 'AAPL', 'amount_usd': -5, 'portfolio_value': 0} -> {'code': 'invalid_request', 'data': {}, 'message': "side must be 'buy' or 'sell', got 'hold'"}
+  {'side': 'buy', 'symbol': 'AAPL', 'amount_usd': 1000000000.0, 'portfolio_value': 0} -> {'code': 'invalid_request', 'data': {}, 'message': 'portfolio_value must be a positive number, got 0.0'}
+== C. large-trade verdict vs the auto-mode order path
+  verdict: Trade looks safe. It is over $5,000: consider EXECUTION_APPROVAL_MODE=approve_each to approve such trades. | approval mode: auto
+== D. a paper proposal approved by an API running live
+  proposed in paper: pending_approval
+  409 {'detail': {'code': 'mode_mismatch', 'message': 'This proposal was made in paper mode and this API runs in live mode; nothing was executed.'}} | broker orders: 0
+== E. what the pending list gives the operator
+  {'pending': [{'request_id': '7ec9f34bc4f34b69afe8fc60', 'kind': 'stock_order', 'created_at': 1790264321.3012943, 'expires_at': 1790264441.3012943, 'order': {'symbol': 'AAPL', 'side': 'buy', 'amount': 1, 'order_type': 'market', 'price': 0.0, 'exchange': 'alpaca', 'rationale': '', 'paper_mode': True}}]}
+  Origin https://evil.example: refused
+
+
+exit=0

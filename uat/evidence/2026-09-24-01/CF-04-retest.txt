@@ -1,0 +1,14 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/approval_mode.sh
+# at 2026-09-24T07:59:27+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+EXECUTION_APPROVAL_MODE=[approve_each]
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1} -> { "data": { "confirm_token": "9d082eb0c8d05d412e8cf07591c6b1bf", "order_details": { "amount": 1.0, "exchange": "alpaca", "order_type": "market", "price": 0.0, "rationale": "", "sentiment_score": null, "side": "buy", "symbol": "AAPL" }, "request_id": "aff091808
+EXECUTION_APPROVAL_MODE=[approve_each  # auto or approve_each]
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1} -> { "data": { "confirm_token": "e50e24049034d10bfffe0ba9aad15d93", "order_details": { "amount": 1.0, "exchange": "alpaca", "order_type": "market", "price": 0.0, "rationale": "", "sentiment_score": null, "side": "buy", "symbol": "AAPL" }, "request_id": "8edc95303
+EXECUTION_APPROVAL_MODE=[approve-each]
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1} -> { "data": { "confirm_token": "3200b7760623a5b682ef0110c23c8975", "order_details": { "amount": 1.0, "exchange": "alpaca", "order_type": "market", "price": 0.0, "rationale": "", "sentiment_score": null, "side": "buy", "symbol": "AAPL" }, "request_id": "d57a4e271
+EXECUTION_APPROVAL_MODE=[APPROVE_EACH ]
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1} -> { "data": { "confirm_token": "cfd10b987b3f485f9e7c306c7a78a14c", "order_details": { "amount": 1.0, "exchange": "alpaca", "order_type": "market", "price": 0.0, "rationale": "", "sentiment_score": null, "side": "buy", "symbol": "AAPL" }, "request_id": "024c93802
+
+
+exit=0

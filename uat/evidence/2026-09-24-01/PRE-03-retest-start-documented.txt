@@ -1,0 +1,10 @@
+$ bash -c 'timeout 30 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/python app/main.py </dev/null 2>&1 | tail -3; echo exit=${PIPESTATUS[0]}'
+# at 2026-09-24T07:17:08+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+[09/24/26 07:17:09] INFO     Starting MCP server                  server.py:2527
+                             'ReadyTrader-Stocks' with transport                
+                             'stdio'                                            
+exit=0
+
+
+exit=0

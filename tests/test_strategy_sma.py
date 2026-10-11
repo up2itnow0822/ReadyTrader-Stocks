@@ -59,3 +59,14 @@ def test_sma_error_handling():
         strat = SmaStrategy("AAPL")
         res = strat.analyze()
         assert res["error"] == "Boom"
+
+
+def test_the_strategy_module_registers_the_pandas_ta_accessor_itself():
+    """Run on its own (examples/verify_live_strategy.py), nothing else imports pandas_ta first."""
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    code = "import strategy.moving_average, pandas as pd; assert hasattr(pd.DataFrame, 'ta')"
+    out = subprocess.run([sys.executable, "-c", code], cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True, timeout=120)
+    assert out.returncode == 0, out.stderr[-600:]

@@ -1,0 +1,18 @@
+$ bash -c 'grep -n "examples/.*demo" README.md; timeout 300 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/python examples/simulation_demo.py 2>&1 | tail -9; echo exit=${PIPESTATUS[0]}'
+# at 2026-09-24T07:17:22+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+79:python examples/paper_quick_demo.py
+80:python examples/simulation_demo.py
+- artifacts/demo_stress/scenario_metrics.csv
+- artifacts/demo_stress/summary.json
+- artifacts/demo_stress/worst_drawdown_equity.csv
+- artifacts/demo_stress/worst_drawdown_trades.json
+
+Worst-drawdown replay seed: 1350
+You can re-run with master_seed=that seed and scenarios=1 to replay deterministically.
+
+Done. Next: connect your agent and run `run_synthetic_stress_test` via MCP.
+exit=0
+
+
+exit=0

@@ -59,7 +59,7 @@ def main() -> int:
         print("\n6) Risk metrics snapshot")
         print(json.dumps(metrics, indent=2))
 
-    print("\nDone. Next: run `python examples/stress_test_demo.py` for the synthetic stress lab.")
+    print("\nDone. Next: run `python examples/simulation_demo.py` for the synthetic stress lab.")
     return 0
 
 

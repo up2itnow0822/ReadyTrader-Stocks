@@ -1,0 +1,15 @@
+$ bash -c 'for env in "LIVE_TRADING_ENABLED=false TRADING_HALTED=false" "LIVE_TRADING_ENABLED=true TRADING_HALTED=true" "LIVE_TRADING_ENABLED=true TRADING_HALTED=false"; do echo "== $env"; env $env /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/live_probe.py 2>&1 | grep -v Warn | grep -v _compat | grep -v warnings.warn | tail -2; done'
+# at 2026-09-24T07:29:00+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+== LIVE_TRADING_ENABLED=false TRADING_HALTED=false
+LIVE_TRADING_ENABLED = False | TRADING_HALTED = False
+{ "error": { "code": "live_trading_disabled", "data": {}, "message": "PAPER_MODE is false but LIVE_TRADING_ENABLED is not true: no live order was sent." }, "ok": false }
+== LIVE_TRADING_ENABLED=true TRADING_HALTED=true
+LIVE_TRADING_ENABLED = True | TRADING_HALTED = True
+{ "error": { "code": "trading_halted", "data": {}, "message": "TRADING_HALTED is set: live trading is halted, no order was sent." }, "ok": false }
+== LIVE_TRADING_ENABLED=true TRADING_HALTED=false
+FAKE BROKER place_order {'symbol': 'AAPL', 'side': 'buy', 'qty': 1.0, 'order_type': 'market', 'price': 100.0}
+{ "data": { "result": { "id": "x" }, "venue": "alpaca" }, "ok": true }
+
+
+exit=0

@@ -280,7 +280,7 @@ def quiet_ledger(monkeypatch):
 def test_the_order_path_honours_an_agent_supplied_score(quiet_ledger):
     """The other half of the defect: place_stock_order passed a hardcoded 0.0."""
     payload = json.loads(
-        quiet_ledger.place_stock_order(SYMBOL, "buy", 10.0, price=25.0, sentiment_score=-0.9)
+        quiet_ledger.place_stock_order(SYMBOL, "buy", 1.0, price=25.0, sentiment_score=-0.9)
     )
     assert payload["ok"] is False
     assert payload["error"]["code"] == "risk_blocked"
@@ -300,7 +300,7 @@ def test_a_limit_order_inherits_the_gate(quiet_ledger):
 
 def test_the_order_path_allows_a_sell_on_a_bearish_score(quiet_ledger):
     payload = json.loads(
-        quiet_ledger.place_stock_order(SYMBOL, "sell", 10.0, price=25.0, sentiment_score=-0.9)
+        quiet_ledger.place_stock_order(SYMBOL, "sell", 1.0, price=25.0, sentiment_score=-0.9)
     )
     assert payload.get("error", {}).get("code") != "risk_blocked"
 
@@ -313,7 +313,7 @@ def test_the_order_path_applies_the_daily_loss_rule(monkeypatch, quiet_ledger):
         "get_risk_metrics",
         lambda self, account: {"equity": 100000.0, "daily_pnl_pct": -0.09, "drawdown_pct": 0.0},
     )
-    payload = json.loads(quiet_ledger.place_stock_order(SYMBOL, "buy", 10.0, price=25.0))
+    payload = json.loads(quiet_ledger.place_stock_order(SYMBOL, "buy", 1.0, price=25.0))
     assert payload["ok"] is False
     assert payload["error"]["code"] == "risk_blocked"
 
@@ -326,11 +326,11 @@ def test_the_order_path_applies_the_drawdown_rule(monkeypatch, quiet_ledger):
         "get_risk_metrics",
         lambda self, account: {"equity": 100000.0, "daily_pnl_pct": 0.0, "drawdown_pct": 0.25},
     )
-    payload = json.loads(quiet_ledger.place_stock_order(SYMBOL, "buy", 10.0, price=25.0))
+    payload = json.loads(quiet_ledger.place_stock_order(SYMBOL, "buy", 1.0, price=25.0))
     assert payload["ok"] is False
     assert payload["error"]["code"] == "risk_blocked"
 
 
 def test_an_ordinary_order_is_not_blocked(quiet_ledger):
-    payload = json.loads(quiet_ledger.place_stock_order(SYMBOL, "buy", 10.0, price=25.0))
+    payload = json.loads(quiet_ledger.place_stock_order(SYMBOL, "buy", 1.0, price=25.0))
     assert payload.get("error", {}).get("code") != "risk_blocked"

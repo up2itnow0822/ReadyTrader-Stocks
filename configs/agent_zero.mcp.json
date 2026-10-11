@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "readytrader_stocks": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "readytrader-stocks-data:/app/data",
+        "-e",
+        "PAPER_MODE=true",
+        "readytrader-stocks"
+      ]
+    }
+  }
+}

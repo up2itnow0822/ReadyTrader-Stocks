@@ -1,0 +1,29 @@
+$ bash -c 'printf "n\nn\nn\nn\n" | timeout 60 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python tools/setup_wizard.py 2>&1 | tail -22; echo exit=${PIPESTATUS[1]}'
+# at 2026-09-24T07:42:06+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+  from ._compat import httpx2
+  [92m[✓][0m fastmcp
+  [92m[✓][0m yfinance
+  [92m[✓][0m pandas
+  [92m[✓][0m pandas_ta
+  [92m[✓][0m alpaca
+  [92m[✓][0m feedparser
+  [92m[✓][0m requests
+
+Checking Network Connectivity...
+  [92m[✓][0m Yahoo Finance (market data) reachable.
+  [92m[✓][0m Yahoo Finance RSS (news) reachable.
+  [93m[?][0m MarketWatch RSS (news) returned status 403.
+
+Checking Critical Keys in .env...
+
+[1mSetup Scan Complete![0m
+Next steps:
+1. Open [1m.env[0m; paper mode needs no keys. For live trading see the README.
+2. Read [1mdocs/SENTIMENT.md[0m for intelligence feed setup.
+3. Run [1mpython app/main.py[0m to start the MCP server (your MCP client can launch it).
+
+exit=0
+
+
+exit=0

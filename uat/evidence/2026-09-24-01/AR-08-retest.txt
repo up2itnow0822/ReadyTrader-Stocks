@@ -1,0 +1,11 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/alpaca_live.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|"event"' | grep -E 'market BUY|sent to Alpaca \('
+# at 2026-09-25T11:54:10+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+  market BUY 10 (whole shares)                 -> {'status': 'filled', 'time_in_force': 'ioc', 'qty': 10.0, 'filled_qty': 10.0, 'filled_avg_price': 100.0}
+  market BUY 0.5 (fractional)                  -> {'status': 'filled', 'time_in_force': 'day', 'qty': 0.5, 'filled_qty': 0.5, 'filled_avg_price': 100.0}
+  sent to Alpaca (type, time_in_force, qty, limit): [('market', 'ioc', 10.0, None), ('market', 'day', 0.5, None), ('limit', 'ioc', 10.0, 101.0), ('limit', 'ioc', 10.0, 95.0)]
+  market BUY 10                                -> market_closed: Alpaca order not sent: the market is closed (next open 2026-09-28T09:30:00-04:00). Orders are sent only while 
+  propose market BUY 10                        -> {'status': 'pending_approval', 'time_in_force': None, 'qty': None, 'filled_qty': None, 'filled_avg_price': None}
+
+
+exit=0

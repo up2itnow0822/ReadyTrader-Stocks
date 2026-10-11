@@ -1,0 +1,36 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p3_paper_limits.py 2>&1 | grep -v 'Warning\|warnings.warn'
+# at 2026-09-24T20:50:19+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+It will be compatible before version 2.0.0.
+  from authlib.jose import JsonWebKey, JsonWebToken
+  from ._compat import httpx2
+(a) does a top-up clear a drawdown halt?
+   after -12%: equity(ledger)=8,800.00 daily_pnl=-12.00% drawdown=12.00%
+   before top-up: pre_trade_check BUY 5 -> allowed=False (Max Drawdown Limit Hit (12.0%). Orders that add exposure are halted; orders that reduce or)
+   deposit_paper_funds(USD, 5000): True
+   after top-up: equity(ledger)=13,800.00 daily_pnl=+38.00% drawdown=0.00%
+   after top-up: pre_trade_check BUY 5 -> allowed=True (Trade looks safe.)
+
+(b) do the metrics lag the market? (bought at 100, now 80, no trade since)
+   after the fall, no trade: equity(ledger)=10,000.00 daily_pnl=+0.00% drawdown=0.00%
+   first BUY after the fall (5 sh @80 = 400 = 5% of true equity): pre_trade_check BUY 5 -> allowed=True (Trade looks safe.)
+   BUY 6 sh (480 = 6% of true 8,000; 4.8% of stale 10,000): pre_trade_check BUY 6 -> allowed=True (Trade looks safe.)
+
+(c) small deposit, small dip, big top-up, tiny loss
+   after the dip: equity(ledger)=950.00 daily_pnl=-5.00% drawdown=5.00%
+   after 100,000 top-up: equity(ledger)=100,950.00 daily_pnl=+9995.00% drawdown=0.00%
+   after a ~0.1% loss: equity(ledger)=100,825.00 daily_pnl=+9982.50% drawdown=0.12%
+   BUY after tiny loss: pre_trade_check BUY 1 -> allowed=True (Trade looks safe.)
+
+(d1) week-old snapshots, account drifted -6% during that week, no snapshot today
+    Paper Trade Executed: BUY 100 AAPL @ 100
+   snapshots: [('2026-09-10T20:50:21.666079+00:00', 15000.0), ('2026-09-14T08:50:21.666079+00:00', 15000.0), ('2026-09-17T20:50:21.666079+00:00', 14100.0)]
+   today, no trade yet: equity(ledger)=14,100.00 daily_pnl=-6.00% drawdown=6.00%
+   first BUY today, 1 sh: pre_trade_check BUY 1 -> allowed=False (Daily Loss Limit Hit (-6.0%). Orders that add exposure are halted; orders that reduce or c)
+
+(d2) last snapshot a week old, price drifted -6% since, no trade
+   today, no trade yet: equity(ledger)=15,000.00 daily_pnl=+0.00% drawdown=0.00%
+   first BUY today, 1 sh: pre_trade_check BUY 1 -> allowed=True (Trade looks safe.)
+
+
+exit=0

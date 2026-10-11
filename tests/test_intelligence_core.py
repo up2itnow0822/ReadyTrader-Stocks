@@ -14,6 +14,7 @@ from intelligence.core import (
 def test_get_market_sentiment_success():
     with patch("requests.get") as mock_get:
         mock_response = MagicMock()
+        mock_response.status_code = 200
         mock_response.json.return_value = {
             "fear_and_greed": {
                 "rating": "greed",
@@ -24,6 +25,13 @@ def test_get_market_sentiment_success():
         
         sentiment = get_market_sentiment()
         assert "CNN Fear & Greed: GREED (65.0)" in sentiment
+
+def test_a_refused_fear_and_greed_request_is_not_reported_as_a_reading():
+    """CNN answers automated clients with 418; that used to read as 'UNKNOWN (0.0)'."""
+    with patch("requests.get") as mock_get:
+        mock_get.return_value = MagicMock(status_code=418, json=MagicMock(return_value={}))
+        sentiment = get_market_sentiment()
+        assert "unavailable (HTTP 418)" in sentiment and "0.0" not in sentiment
 
 def test_get_market_sentiment_failure():
     with patch("requests.get", side_effect=Exception("API Down")):

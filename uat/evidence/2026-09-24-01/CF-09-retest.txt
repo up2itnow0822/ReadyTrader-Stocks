@@ -1,0 +1,8 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/st_badnum.sh
+# at 2026-09-24T12:26:29+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CIRCUIT_BREAKER_PCT=7% => CALL get_stock_price {"symbol": "AAPL"} -> { "data": { "ask": null, "average": null, "baseVolume": 31587800.0, "bid": null, "change": null, "close": 337.0199890136719, "datetime": "2026-09-24T12:26:33
+RATE_LIMIT_DEFAULT_PER_MIN=lots => CALL get_stock_price {"symbol": "AAPL"} -> { "data": { "ask": null, "average": null, "baseVolume": 31587800.0, "bid": null, "change": null, "close": 337.0199890136719, "datetime": "2026-09-24T12:26:37
+
+
+exit=0

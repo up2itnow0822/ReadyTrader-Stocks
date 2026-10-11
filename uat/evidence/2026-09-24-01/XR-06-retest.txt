@@ -1,0 +1,27 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p8_symbols.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|│\|╭\|╰\|INFO\|transport\|stdio'
+# at 2026-09-24T21:06:28+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+== PAPER: the ticker USD (ProShares Ultra Semiconductors, NYSE Arca) is the ledger's cash asset ==
+   before: balances {'USD': 10000.0} equity 10000.0
+   pre_trade_check SELL 5,000 'USD': allowed True | position_units 10000.0 | exposure_added 0.0 (5,000 x 60 = 300,000 = 3,000% of the account)
+   place_market_order('usd','sell',5000): invalid_request: USD is the paper ledger's cash asset and cannot be paper traded as a ticker
+   after: balances {'USD': 10000.0} equity 10000.0
+   BUY 250 AAPL @60 (15,000 = 150% of the real 10,000; 4.9% of the minted equity) -> False
+
+== PAPER: a SELL beyond the holding ==
+   SELL 40 holding 10: exposure_added 30.0 allowed True -> insufficient_funds: Insufficient fund. Have 10.0 AAPL, need 40
+   SELL 10 ' aapl ': position seen 10.0, exposure_added 0.0, allowed True
+   SELL 10 'AAPL/USD': position seen 0.0, exposure_added 10.0, allowed True
+   SELL 10 'BRK/B': position seen 0.0, exposure_added 10.0, allowed True
+   BUY 1 'BRK/B' (class share with a slash) -> invalid_request: 'BRK/B' is not a stock ticker; class shares use a dot (BRK.B) | parsed as ('BRK', 'B')
+
+== LIVE (recorder brokerage, equity 100,000, market 100) ==
+   hold 100 BRK.B  sell   100 'BRK/B'   : position seen      0, added  100.0 -> invalid_request: 'BRK/B' is not a stock ticker; class shares use a dot
+   hold 100 BRK.B  sell   100 'brk.b '  : position seen  100.0, added    0.0 -> ok: {'id': 'rec-1', 'order_type': 'market', 'price': None, ' | broker got symbol 'BRK.B'
+   hold 100 AAPL   sell   200 'aapl'    : position seen  100.0, added  100.0 -> risk_blocked: Position size too large (10.0%). Max allowed is 5%.
+   hold 100 AAPL   sell   100 'AAPL.US' : position seen      0, added  100.0 -> risk_blocked: Position size too large (10.0%). Max allowed is 5%.
+   hold 100 AAPL   sell  1000 'AAPL'    : position seen  100.0, added  900.0 -> risk_blocked: Position size too large (90.0%). Max allowed is 5%.
+   short 100 AAPL, BUY 150 'aapl': added 50.0 (50 new long) allowed False
+
+
+exit=0

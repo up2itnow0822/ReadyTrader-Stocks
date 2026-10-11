@@ -1,0 +1,12 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/api_token_paths.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|"event"' | grep -v 'carries Access'
+# at 2026-09-25T11:39:47+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+GET /api/portfolio Host '127.0.0.1:8000'       no token -> 401
+GET /api/portfolio Host '127.0.0.1:8000#'      no token -> 200
+GET /api/portfolio Host '127.0.0.1:8000?'      no token -> 200
+GET /api/portfolio Host '127.0.0.1:8000/x'     no token -> 200
+GET /rt/api/pending-approvals root_path /rt, no token -> 200
+GET /api/health, no token -> 200
+
+
+exit=0

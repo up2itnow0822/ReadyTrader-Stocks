@@ -1,0 +1,20 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p5_api.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2'
+# at 2026-09-24T20:51:11+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+bcrypt installed: False | passlib installed: False
+auth code in api_server.py (login/token/bcrypt/DEV_MODE/Depends): []
+routes: ['/api/approve-trade', '/api/health', '/api/pending-approvals', '/api/portfolio', '/docs', '/docs/oauth2-redirect', '/openapi.json', '/redoc', '/ws']
+   POST /api/login -> 404
+   POST /api/auth/login -> 404
+   POST /login -> 404
+   POST /token -> 404
+unauthenticated GET /api/portfolio -> 200 | GET /api/pending-approvals -> 200
+log lines request_id: ['3a598b86-2b68-4e2f-b022-53b978a13165', '3a598b86-2b68-4e2f-b022-53b978a13165'] -> identical: True | API_CTX: {'tool': 'api_server', 'request_id': '3a598b86-2b68-4e2f-b022-53b978a13165', 'ts_ms': 1790283073605, 'service': 'readytrader'}
+
+200 response headers: {'content-length': '30', 'content-type': 'application/json'}
+   security/request-id headers present: []
+unhandled exception in a route -> 500 'Internal Server Error' {'content-length': '21', 'content-type': 'text/plain; charset=utf-8'}
+exception inside approve-trade's try -> 500 {"detail":"secret internal detail: /home/op/.env line 3"}
+
+
+exit=0

@@ -1,0 +1,14 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/alpaca_live.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2\|"event"' | sed -n '/== market closed/,$p'
+# at 2026-09-25T11:53:52+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+== market closed
+  market BUY 10                                -> market_closed: Alpaca order not sent: the market is closed (next open 2026-09-28T09:30:00-04:00). Orders are sent only while 
+  sent to Alpaca while closed: []
+== approve_each: propose while open, the market closes, approve, the market opens, approve
+  propose market BUY 10                        -> {'status': 'pending_approval', 'time_in_force': None, 'qty': None, 'filled_qty': None, 'filled_avg_price': None}
+  approve while closed -> 409 {'detail': {'code': 'market_closed', 'message': 'Alpaca order not sent: the market is closed (next open 2026-09-28T09:30:00-04:00)
+  still pending: True
+  approve after the open -> 200 {'ok': True, 'result': {'id': 'o5', 'client_order_id': 'c', 'status': 'filled', 'symbol': 'AAPL', 'qty': 10.0, 'filled_qty': 10.0,
+
+
+exit=0

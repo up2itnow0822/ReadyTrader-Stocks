@@ -1,0 +1,11 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks && .venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/smithery_run.py . /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/mcp_call.py
+# at 2026-09-24T08:30:44+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+parsed; duplicate keys: none
+type: stdio | config keys: PAPER_MODE, LIVE_TRADING_ENABLED, TRADING_HALTED, EXECUTION_APPROVAL_MODE, MAX_ORDER_AMOUNT, ALLOW_TICKERS, ALPACA_API_KEY, ALPACA_API_SECRET, ALPACA_PAPER, NEWSAPI_KEY, ALPHAVANTAGE_API_KEY
+config keys missing from env.example: none
+commandFunction(exampleConfig) -> {"command": "python", "args": ["app/main.py"], "env": {"PAPER_MODE": "true", "EXECUTION_APPROVAL_MODE": "auto"}}
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, get_market_regime, get_market_sentiment, get_multiple_prices, get_social_sentiment, get_stock_price, p
+
+
+exit=0

@@ -49,10 +49,9 @@ def test_private_ws_paper_mode_blocked():
          assert res["ok"] is False
          assert res["error"]["code"] == "paper_mode_not_supported"
 
-def test_private_ws_alpaca_ws():
+def test_private_ws_is_reported_as_not_implemented():
+    """It used to answer "connected" without opening anything."""
     with patch.object(settings, 'PAPER_MODE', False):
-        res_str = start_brokerage_private_ws("alpaca")
-        res = json.loads(res_str)
-        assert res["ok"] is True
-        assert res["data"]["mode"] == "ws"
-        assert res["data"]["brokerage"] == "alpaca"
+        res = json.loads(start_brokerage_private_ws("alpaca"))
+        assert res["ok"] is False
+        assert res["error"]["code"] == "not_implemented"

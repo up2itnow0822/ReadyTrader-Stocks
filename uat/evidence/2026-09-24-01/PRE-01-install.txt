@@ -1,0 +1,12 @@
+$ bash -c 'python3 --version; python3 -m venv /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/venv-uat-stocks/bin/pip install -q -r requirements-dev.txt 2>&1 | grep -v notice | tail -4; echo pip_exit=${PIPESTATUS[0]}'
+# at 2026-09-24T07:09:00+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+Python 3.11.15
+ERROR: Ignored the following versions that require a different python version: 0.4.67b0 Requires-Python >=3.12; 0.4.71b0 Requires-Python >=3.12
+ERROR: Could not find a version that satisfies the requirement pandas_ta (from versions: none)
+ERROR: No matching distribution found for pandas_ta
+
+pip_exit=1
+
+
+exit=0

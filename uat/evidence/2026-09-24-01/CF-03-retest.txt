@@ -1,0 +1,16 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks && for v in true TRUE 1 yes on; do PAPER_MODE=false LIVE_TRADING_ENABLED=true TRADING_HALTED=$v .venv/bin/python -W ignore /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/halt_probe.py 2>/dev/null; done
+# at 2026-09-24T07:59:16+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+TRADING_HALTED env = 'true' -> settings.TRADING_HALTED = True
+live_execution_refusal() = {'code': 'trading_halted', 'message': 'TRADING_HALTED is set: live trading is halted, no order was sent.'}
+TRADING_HALTED env = 'TRUE' -> settings.TRADING_HALTED = True
+live_execution_refusal() = {'code': 'trading_halted', 'message': 'TRADING_HALTED is set: live trading is halted, no order was sent.'}
+TRADING_HALTED env = '1' -> settings.TRADING_HALTED = True
+live_execution_refusal() = {'code': 'trading_halted', 'message': 'TRADING_HALTED is set: live trading is halted, no order was sent.'}
+TRADING_HALTED env = 'yes' -> settings.TRADING_HALTED = True
+live_execution_refusal() = {'code': 'trading_halted', 'message': 'TRADING_HALTED is set: live trading is halted, no order was sent.'}
+TRADING_HALTED env = 'on' -> settings.TRADING_HALTED = True
+live_execution_refusal() = {'code': 'trading_halted', 'message': 'TRADING_HALTED is set: live trading is halted, no order was sent.'}
+
+
+exit=0

@@ -1,0 +1,11 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/xproc.sh
+# at 2026-09-24T07:25:46+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+MCP process: "status": "pending_approval"
+request_id=d5323b9fd05b07e1fa569c2d token_len=32
+sqlite rows in EXECUTION_DB_PATH: 1
+API /api/pending-approvals: {"pending":[]}
+API approve: {"detail":"Unknown request_id"}
+
+
+exit=0

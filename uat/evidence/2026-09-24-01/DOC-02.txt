@@ -1,0 +1,17 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx/readme_docker.sh
+# at 2026-09-24T21:13:34+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+95:docker build -t readytrader-stocks .
+97:docker run --rm -i -v readytrader-stocks-data:/app/data readytrader-stocks
+sha256:d6755356c60e38c96f8336e94e36c6a33a9c6e66ed0e4fa7106f9bf0b1fa0231
+BUILD_EXIT=0
+--- docker run --rm -i -v readytrader-stocks-data:/app/data readytrader-stocks (as an MCP client):
+TOOLS 20: deposit_paper_funds, fetch_ohlcv, fetch_rss_news, get_financial_news, get_latest_insights, get_market_news, get_market_regime, get_market_sentiment, get_multiple_prices, get_social_sentiment
+CALL get_stock_price {"symbol": "AAPL"} -> { "data": { "ask": null, "average": null, "baseVolume": 24364559.0, "bid": null, "change": null, "close": 335.9200134277344, "datetime": "2026-09-24T21:13:41
+CALL deposit_paper_funds {"asset": "USD", "amount": 1000} -> { "data": { "message": "Deposited 1000.0 USD. New Balance: 1000.0" }, "ok": true }
+CALL place_market_order {"symbol": "AAPL", "side": "buy", "amount": 1} -> { "error": { "code": "risk_blocked", "data": { "exposure_added_units": 1.0, "inactive_rules": [], "market": { "as_of": "2026-0
+--- API sidecar from the same image (Dockerfile comment):
+health: {"status":"ok","mode":"paper"}
+
+
+exit=0

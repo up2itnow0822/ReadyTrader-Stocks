@@ -1,0 +1,51 @@
+{
+  "url": "http://localhost:3002/",
+  "final_url": "http://localhost:3002/",
+  "title": "ReadyTrader | Institutional AI Stock Trading",
+  "started_at": "2026-09-24T07:36:59+0000",
+  "viewport": "1280x800",
+  "actions": [],
+  "console_errors": [
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to fetch approvals: TypeError: Failed to fetch\n    at http://localhost:3002/_next/static/chunks/c47036e6bcfb5bf1.js:1:2665\n    at http://localhost:3002/_next/static/chunks/c47036e6bcfb5bf1.js:1:3046\n    at ih (http://localhost:3002/_next/static/chunks/cc759f7c2413b7ff.js:1:102219)\n    at uf (http://localhost:3002/_next/static/chunks/cc759f7c2413b7ff.js:1:126069)\n    at uc (http://localhost:3002/_next/static/chunks/cc759f7c2413b7ff.js:1:125731)\n    at uf (http://localhost:3002/_next/static/chunks/cc759f7c2413b7ff.js:1:126049)\n    at uc (http://localhost:3002/_next/static/chunks/cc759f7c2413b7ff.js:1:125731)\n    at uf (http://localhost:3002/_next/static/chunks/cc759f7c2413b7ff.js:1:126114)\n    at uc (http://localhost:3002/_next/static/chunks/cc759f7c2413b7ff.js:1:125731)\n    at uf (http://localhost:3002/_next/static/chunks/cc759f7c2413b7ff.js:1:126114)",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "WebSocket connection to 'ws://localhost:8000/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "WS Error: Event"
+  ],
+  "console_warnings": [],
+  "page_errors": [],
+  "failed_requests": [
+    {
+      "url": "http://localhost:8000/api/health",
+      "error": "net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "url": "http://localhost:8000/api/pending-approvals",
+      "error": "net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "url": "http://localhost:8000/api/portfolio",
+      "error": "net::ERR_CONNECTION_REFUSED"
+    }
+  ],
+  "aborted_requests": [],
+  "http_errors": [],
+  "assertions": [
+    {
+      "type": "text",
+      "value": "API offline",
+      "passed": true
+    },
+    {
+      "type": "text",
+      "value": "not reachable",
+      "passed": true
+    }
+  ],
+  "load_ok": true,
+  "ok": false,
+  "reason": [
+    "3 failed request(s)"
+  ]
+}

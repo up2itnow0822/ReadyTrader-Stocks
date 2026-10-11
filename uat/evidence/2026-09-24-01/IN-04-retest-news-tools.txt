@@ -1,0 +1,9 @@
+$ bash -c 'env -u ALPHAVANTAGE_API_KEY PROBE_MAX=400 timeout 200 /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/mcp_call.py . "[\"app/main.py\"]" "{}" "[[\"get_market_news\",{\"symbol\":\"AAPL\"}],[\"fetch_rss_news\",{}],[\"get_market_sentiment\",{}]]" 2>&1 | grep ^CALL'
+# at 2026-09-24T07:40:06+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+CALL get_market_news {"symbol": "AAPL"} -> { "data": { "news": "Market News: ALPHAVANTAGE_API_KEY missing. News unavailable.", "symbol": "AAPL" }, "ok": true }
+CALL fetch_rss_news {} -> { "data": { "news": "Market News (Free RSS):\n1. Grant Cardone offers 10 Bitcoin bounty on finding a buyer for his private jet (Yahoo Finance)\n2. Bessent just picked the one wage measure still rising (Yahoo Finance)\n3. What is the prime rate, and how does it affect you? (Yahoo Finance)", "symbol": "" }, "ok": true }
+CALL get_market_sentiment {} -> { "data": { "market_sentiment": "Market Sentiment: CNN Fear & Greed unavailable (HTTP 404). (Zero-Mock Policy: No simulated fallback provided)." }, "ok": true }
+
+
+exit=0

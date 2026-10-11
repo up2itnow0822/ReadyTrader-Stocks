@@ -1,0 +1,14 @@
+$ bash /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/intel_fail.sh
+# at 2026-09-24T08:22:53+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+--- invalid keys
+CALL get_financial_news {"symbol": "AAPL"} -> { "error": { "code": "source_unavailable", "data": { "symbol": "AAPL" }, "message": "NewsAPI Error: {'status': 'error', 'code': 'apiKeyInvalid', 'message': 'Your API key is invalid or incorrect. Check your key, or go to https://newsapi.org to create a free API
+CALL get_market_news {"symbol": "AAPL"} -> { "error": { "code": "source_unavailable", "data": { "symbol": "AAPL" }, "message": "Error: Alpha Vantage returned no news: We have detected your API key as invalid-key and our standard API rate limit is 25 requests per day. Please subscribe to any of the prem
+--- no keys
+CALL get_financial_news {"symbol": "AAPL"} -> { "error": { "code": "not_configured", "data": { "symbol": "AAPL" }, "message": "Financial News: NEWSAPI_KEY missing or NewsApiClient not installed. (Zero-Mock Policy)." }, "ok": false }
+CALL get_market_news {"symbol": "AAPL"} -> { "error": { "code": "not_configured", "data": { "symbol": "AAPL" }, "message": "Market News: ALPHAVANTAGE_API_KEY missing. News unavailable." }, "ok": false }
+CALL get_social_sentiment {"symbol": "AAPL"} -> { "error": { "code": "not_configured", "data": { "symbol": "AAPL" }, "message": "Social Sentiment Unavailable for AAPL: No sentiment APIs configured.\nTo enable social feeds:\n1. X (Twitter): Get a Bearer Token from https://developer.x.com/ and set TWITTER_BEA
+CALL get_market_sentiment {} -> { "error": { "code": "source_unavailable", "data": {}, "message": "Market Sentiment: CNN Fear & Greed unavailable (HTTP 404). (Zero-Mock Policy: No simulated fallback provided)." }, "ok": false }
+
+
+exit=0

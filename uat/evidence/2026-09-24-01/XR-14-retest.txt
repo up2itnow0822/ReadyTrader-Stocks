@@ -1,0 +1,19 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/alpaca_tif.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks 2>&1 | tail -8; grep -n 'TimeInForce\.' execution/alpaca_service.py; grep -n 'closing orders included\|fill now or not at all\|fills now or not at all\|Orders fill when checked' README.md RUNBOOK.md docs/EXCHANGES.md docs/THREAT_MODEL.md | cut -c1-160
+# at 2026-09-24T22:01:26+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+== market open
+  market BUY 10 AAPL -> submitted: type=market time_in_force=day
+  limit  BUY 10 AAPL -> submitted: type=limit time_in_force=ioc limit=180.0
+== market CLOSED
+  market BUY 10 AAPL -> refused before sending: Alpaca order not sent: the market is closed (next open 2026-09-25T13:30:00Z). Orders are sent only while it is open, so none waits for the open past t
+  limit  BUY 10 AAPL -> refused before sending: Alpaca order not sent: the market is closed (next open 2026-09-25T13:30:00Z). Orders are sent only while it is open, so none waits for the open past t
+79:                    time_in_force=TimeInForce.DAY
+88:                    time_in_force=TimeInForce.IOC,
+README.md:175:Live orders go out only with `PAPER_MODE=false` **and** `LIVE_TRADING_ENABLED=true`; `TRADING_HALTED=true` refuses them all, closing orders includ
+RUNBOOK.md:26:  `trading_halted`, closing orders included: flatten positions at the brokerage (web or app). The
+docs/EXCHANGES.md:32:**Alpaca orders fill now or not at all.** The Risk Guardian judges an order against the market and
+docs/THREAT_MODEL.md:25:    - **Orders fill when checked**: the Risk Guardian judges an order against the market and the positions at the moment it is placed, s
+docs/THREAT_MODEL.md:26:    - **Kill switch**: `TRADING_HALTED` refuses every live order and approval, closing orders included; flatten and cancel at the broker
+
+
+exit=0

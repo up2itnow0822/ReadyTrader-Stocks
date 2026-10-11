@@ -1,0 +1,12 @@
+$ /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/stx2/alpaca_tif.py /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks 2>&1 | tail -6
+# at 2026-09-25T11:40:15+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+== market open
+  market BUY 10 AAPL -> submitted: type=market time_in_force=day
+  limit  BUY 10 AAPL -> submitted: type=limit time_in_force=ioc limit=180.0
+== market CLOSED
+  market BUY 10 AAPL -> refused before sending: Alpaca order not sent: the market is closed (next open 2026-09-25T13:30:00Z). Orders are sent only while it is open, so none waits for the open past t
+  limit  BUY 10 AAPL -> refused before sending: Alpaca order not sent: the market is closed (next open 2026-09-25T13:30:00Z). Orders are sent only while it is open, so none waits for the open past t
+
+
+exit=0

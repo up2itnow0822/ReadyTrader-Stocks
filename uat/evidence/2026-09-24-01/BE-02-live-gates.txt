@@ -1,0 +1,9 @@
+$ bash -c 'LIVE_TRADING_ENABLED=false TRADING_HALTED=true /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/probes/live_probe.py 2>&1 | grep -v Warn | grep -v _compat | tail -3'
+# at 2026-09-24T07:22:55+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+  warnings.warn(  # deprecated in 14.0 - 2024-11-09
+LIVE_TRADING_ENABLED = False | TRADING_HALTED = True
+{ "error": { "code": "execution_error", "data": {}, "message": "PolicyEngine.validate_brokerage_order() missing 1 required keyword-only argument: 'order_type'" }, "ok": false }
+
+
+exit=0

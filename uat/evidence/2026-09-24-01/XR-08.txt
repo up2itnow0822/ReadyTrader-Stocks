@@ -1,0 +1,67 @@
+$ cd /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/review_stocks && /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks/.venv/bin/python p6_docker.py 2>&1 | grep -v 'Warning\|warnings.warn\|authlib\|compatible before\|httpx2'
+# at 2026-09-24T20:51:08+00:00 in /tmp/claude-0/-home-claude/55237518-b0f0-557c-b340-66cb8731d4ad/scratchpad/repos/ReadyTrader-Stocks
+
+== hypothetical secret / junk paths ==
+   .env                                     excluded               .dockerignore:11 .env
+   .env.live                                SENT TO BUILD CONTEXT  
+   .env.local                               SENT TO BUILD CONTEXT  
+   .env.production                          SENT TO BUILD CONTEXT  
+   configs/.env                             SENT TO BUILD CONTEXT  
+   app/.env                                 SENT TO BUILD CONTEXT  
+   frontend/.env.local                      SENT TO BUILD CONTEXT  
+   server.pem                               SENT TO BUILD CONTEXT  
+   certs/server.pem                         SENT TO BUILD CONTEXT  
+   tls.key                                  SENT TO BUILD CONTEXT  
+   keys/id_rsa.key                          SENT TO BUILD CONTEXT  
+   keystore/wallet.json                     SENT TO BUILD CONTEXT  
+   keystore                                 SENT TO BUILD CONTEXT  
+   secrets.json                             SENT TO BUILD CONTEXT  
+   app/__pycache__/main.cpython-312.pyc     SENT TO BUILD CONTEXT  
+   core/foo.pyc                             SENT TO BUILD CONTEXT  
+   data/paper.db                            excluded               .dockerignore:15 data/
+   configs/data/paper.db                    SENT TO BUILD CONTEXT  
+   app/paper.db                             SENT TO BUILD CONTEXT  
+   execution.db                             SENT TO BUILD CONTEXT  
+   frontend/.next/cache                     excluded               .dockerignore:27 frontend/.next/
+   uat/UAT-LOG.md                           excluded               .dockerignore:17 uat/
+   .pytest_cache/x                          excluded               .dockerignore:6 .pytest_cache/
+
+== files actually in the working tree that would be sent and look like caches/secrets/local state ==
+   211 files sent; flagged 71:
+      bandit_report.json
+      observability/__pycache__/prometheus.cpython-312.pyc
+      observability/__pycache__/webhooks.cpython-312.pyc
+      observability/__pycache__/audit.cpython-312.pyc
+      observability/__pycache__/logging.cpython-312.pyc
+      observability/__pycache__/__init__.cpython-312.pyc
+      observability/__pycache__/metrics.cpython-312.pyc
+      app/tools/__pycache__/intelligence.cpython-312.pyc
+      app/tools/__pycache__/market.cpython-312.pyc
+      app/tools/__pycache__/__init__.cpython-312.pyc
+      app/tools/__pycache__/trading.cpython-312.pyc
+      app/tools/__pycache__/research.cpython-312.pyc
+      app/__pycache__/api_server.cpython-312.pyc
+      app/__pycache__/__init__.cpython-312.pyc
+      app/__pycache__/main.cpython-312.pyc
+      app/core/__pycache__/container.cpython-312.pyc
+      app/core/__pycache__/compliance.cpython-312.pyc
+      app/core/__pycache__/config.cpython-312.pyc
+      app/core/__pycache__/__init__.cpython-312.pyc
+      intelligence/__pycache__/technical_analysis.cpython-312.pyc
+      intelligence/__pycache__/sentiment.cpython-311.pyc
+      intelligence/__pycache__/core.cpython-311.pyc
+      intelligence/__pycache__/recommendations.cpython-312.pyc
+      intelligence/__pycache__/learning.cpython-312.pyc
+      intelligence/__pycache__/core.cpython-312.pyc
+
+== Dockerfile ==
+   Dockerfile:1: FROM python:3.12-slim
+   Dockerfile:5: ENV PYTHONDONTWRITEBYTECODE=1 \
+   Dockerfile:6:     PYTHONUNBUFFERED=1
+   Dockerfile:14: COPY requirements.txt .
+   Dockerfile:21: COPY . .
+   Dockerfile:30: CMD ["python", "app/main.py"]
+   stages: 1 | USER set: False | TRADING_HALTED/PAPER_MODE in ENV: False
+
+
+exit=0
